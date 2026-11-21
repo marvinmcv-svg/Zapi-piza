@@ -1,0 +1,5 @@
+{
+  "functions": {
+    "api/zapia.js": { "maxDuration": 60 }
+  }
+}

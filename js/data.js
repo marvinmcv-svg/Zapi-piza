@@ -99,23 +99,24 @@
     /* ---------------- PROMOS (Instagram, November 2026) ---------------- */
     // "¡LA SEMANA ZAPI EN TIEMPOS DE ANIVERSARIO SE VE ASÍ!" (DfSZzrUBk9s)
     weekly: [
-      { day: 1, name: "Lunes", title: "de Premium", desc: "Tu Zapi Familia Premium", price: "56", save: "Ahorrás Bs 12" },
-      { day: 2, name: "Martes", title: "de Eco", desc: "Tu Zapi Eco Familiar", price: "36", save: "Ahorrás hasta Bs 10" },
-      { day: 3, name: "Miércoles", title: "de Clásicas y Especiales", desc: "Tus favoritas familiares", price: "46", from: true, save: "Ahorrás Bs 8–18" },
+      { day: 1, name: "Lunes", title: "de Premium", desc: "Tu Zapi Familia Premium", price: "56", save: "Ahorrás Bs 12", cats: ["premium"] },
+      { day: 2, name: "Martes", title: "de Eco", desc: "Tu Zapi Eco Familiar", price: "36", save: "Ahorrás hasta Bs 10", cats: ["eco"] },
+      { day: 3, name: "Miércoles", title: "de Clásicas y Especiales", desc: "Tus favoritas familiares", price: "46", from: true, save: "Ahorrás Bs 8–18", cats: ["clasica", "especial"] },
       { day: 5, name: "Viernes", title: "de Palé", desc: "Todas las paletas Palé", price: "6", save: "Refrescá tu día", pale: true },
     ],
 
     // "¡6 años se celebran con MUCHO más sabor!" (Df0PAsYFHL9)
     combos: [
       // Contents and photos from the post's carousel slides.
+      // `parts`: the closest menu items, used to show what the combo saves vs. buying them separately.
       { id: "combo-chori", name: "Combo Chori", price: 56, img: "assets/img/combo-chori.webp",
-        note: "Zapi Familiar Chori + Guaraná 1 litro" },
+        note: "Zapi Familiar Chori + Guaraná 1 litro", parts: ["chori", "soda-1l"] },
       { id: "combo-cheese", name: "Combo Cheese", price: 66, img: "assets/img/combo-cheese.webp",
-        note: "Zapi Familiar Cheeseburger + Coca-Cola 1,5 litros" },
+        note: "Zapi Familiar Cheeseburger + Coca-Cola 1,5 litros", parts: ["cheeseburger", "soda-15"] },
       { id: "combo-peppe", name: "Combo Zuper Peppe", price: 76, img: "assets/img/combo-peppe.webp", hot: true,
-        note: "Zapi Familiar Zuper Peppe + Coca-Cola 2 litros" },
+        note: "Zapi Familiar Zuper Peppe + Coca-Cola 2 litros", parts: ["zuper-peppe", "soda-2l"] },
       { id: "combo-aniv", name: "Combo Aniversario", price: 96, img: "assets/img/combo-aniv.webp", star: true,
-        note: "Zapi Familiar Carne Cebolla + Zapi Familiar Americana + Pepsi 2,5 litros" },
+        note: "Zapi Familiar Carne Cebolla + Zapi Familiar Americana + Pepsi 2,5 litros", parts: ["carne-cebolla", "americana", "soda-25"] },
     ],
 
     // Yapa del mes: Jamón y Pimentón familiar at Bs 46 (regular Bs 58), all of November.
@@ -186,6 +187,25 @@
       { img: "assets/img/yapa.webp", url: "https://instagram.com/p/DfNjDxMxHma", alt: "Yapa del mes: Jamón y Pimentón Bs 46" },
       { img: "assets/img/amor.webp", url: "https://instagram.com/p/DfAzgKBlL3S", alt: "¿Qué es el amor?" },
     ],
+  };
+
+  /* Everything that can go in a cart, by id. Shared by the site and Zap-IA's tools, so both price alike. */
+  ZAPI.catalog = function catalog() {
+    const Z = ZAPI, out = {};
+    const sizeShort = { familiar: "Familiar", jr: "Jr." };
+    Z.menu.forEach((cat) => cat.items.forEach((it) => {
+      out[it.id] = { id: it.id, name: cat.size === "jr" ? it.name : `${it.name} (${sizeShort[cat.size]})`, price: it.price,
+        kind: "pizza", cat: cat.id, size: cat.size, desc: it.desc, veg: !!it.veg, hot: !!it.hot };
+    }));
+    Z.combos.forEach((c) => (out[c.id] = { id: c.id, name: c.name, price: c.price, kind: "combo", desc: c.note }));
+    out[Z.yapa.id] = { id: Z.yapa.id, name: Z.yapa.name, price: Z.yapa.price, kind: "promo", desc: "pizza familiar de jamón y pimentón", regular: Z.yapa.regular };
+    Z.addons.sodas.forEach((s) => (out[s.id] = { id: s.id, name: s.name, price: s.price, kind: "drink" }));
+    const groups = { extra: ["Extra", Z.addons.extras], salsa: ["Salsa", Z.addons.salsas], borde: ["", Z.addons.bordes] };
+    Object.entries(groups).forEach(([key, [label, g]]) => g.items.forEach((name) => {
+      const id = `${key}:${name}`;
+      out[id] = { id, name: label ? `${label} ${name.toLowerCase()}` : name, price: g.price, kind: key };
+    }));
+    return out;
   };
 
   if (typeof module !== "undefined" && module.exports) module.exports = ZAPI;

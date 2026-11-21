@@ -896,6 +896,88 @@ button { font: inherit; cursor: pointer; }
 .zapia__send { width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--red); color: var(--cream); font-size: 1rem; }
 .zapia__send:disabled { opacity: .5; }
 .zapia__legal { margin: 0; padding: 4px 16px 10px; font-size: .7rem; opacity: .5; background: #fff8e2; text-align: center; }
+.zapia__form input { min-width: 0; }
+
+/* ---------- Zap-IA cards (live cart, receipt, order, location, handoff) ---------- */
+.zcard {
+  align-self: flex-start; width: min(100%, 320px); padding: 14px 14px 12px; border-radius: 18px; border-bottom-left-radius: 6px;
+  background: #fff; border: 1px solid var(--cream-2); box-shadow: 0 10px 24px -18px rgba(29,10,12,.5); animation: fadeUp .35s var(--ease); font-size: .9rem;
+}
+.zcard__title { margin: 0 0 8px; font-family: var(--font-display); font-weight: 400; font-size: 1.12rem; line-height: 1.1; color: var(--wine); }
+.zcard__sub { margin: -4px 0 10px; font-size: .84rem; opacity: .7; }
+.zcard__lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.zcard__lines li { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; line-height: 1.3; }
+.zcard__lines b { color: var(--red); }
+.zcard__lines em { font-style: normal; font-weight: 700; white-space: nowrap; }
+.zcard__total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; padding-top: 10px; border-top: 2px dotted rgba(161,7,21,.25); font-weight: 600; }
+.zcard__total strong { font-family: var(--font-display); font-weight: 400; font-size: 1.45rem; color: var(--red); line-height: 1; }
+.zcard__actions { margin-top: 10px; display: flex; gap: 8px; }
+.zbtn2 { border: 0; border-radius: 999px; padding: 8px 14px; background: var(--cream-2); color: var(--red-deep); font-weight: 700; font-size: .84rem; transition: background .2s, color .2s; }
+.zbtn2:hover { background: var(--red); color: var(--cream); }
+.zbtn2--loc { width: 100%; padding: 12px 14px; background: var(--red); color: var(--cream); font-size: .92rem; }
+.zbtn2--loc:hover { background: var(--red-deep); }
+.zbtn2:disabled { opacity: .7; pointer-events: none; }
+.zcard__dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 12px 0 0; font-size: .84rem; }
+.zcard__dl dt { font-weight: 700; color: var(--red-deep); }
+.zcard__dl dd { margin: 0; }
+.zcard__fine { margin: 10px 0 0; font-size: .74rem; line-height: 1.4; opacity: .6; }
+.zcard--receipt { background: #fffdf6; border: 1px dashed rgba(161,7,21,.35); border-radius: 14px; border-bottom-left-radius: 14px; position: relative; }
+.zcard--receipt::before { content: ""; position: absolute; left: 12px; right: 12px; top: -1px; height: 6px; background: conic-gradient(var(--red) 25%, transparent 0 50%, var(--red) 0 75%, transparent 0) 0 0 / 12px 12px; opacity: .85; border-radius: 2px; }
+.zcard--receipt .zopts { margin-top: 12px; }
+.zcard--order { border: 2px solid var(--wa); }
+.zcard--loc, .zcard--handoff { padding: 10px; }
+.zwa {
+  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 13px 14px; border-radius: 999px;
+  background: var(--wa); color: #062b12; font-weight: 700; text-decoration: none; font-size: .95rem; box-shadow: 0 10px 20px -12px rgba(37,211,102,.9);
+  transition: transform .3s var(--ease), filter .2s;
+}
+.zwa:hover { transform: translateY(-2px); filter: brightness(1.04); }
+.zwa--ghost { background: #dff5e3; box-shadow: none; color: #0f7a3a; font-size: .88rem; }
+.zopts { align-self: flex-start; display: flex; flex-wrap: wrap; gap: 6px; max-width: 100%; animation: fadeUp .35s var(--ease); }
+.zopts button { border: 1.5px solid var(--red); background: #fff; color: var(--red); border-radius: 999px; padding: 7px 13px; font-size: .84rem; font-weight: 700; transition: background .2s, color .2s; }
+.zopts button:hover, .zopts button.is-main { background: var(--red); color: var(--cream); }
+.zopts button.is-main:hover { background: var(--red-deep); }
+.zapia__chips { padding-top: 2px; }
+
+/* ---------- Zap-IA voice ---------- */
+.zapia__voice { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-top: 1px solid var(--cream-2); background: #fffaf0; font-size: .8rem; cursor: default; }
+.zapia__voice[hidden] { display: none; }
+.zapia__vstatus { flex: 1; min-width: 0; color: rgba(36,17,18,.75); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zapia__vstate { display: inline-flex; align-items: center; gap: 3px; height: 18px; width: 26px; justify-content: center; }
+.zapia__vstate i { width: 3px; height: 6px; border-radius: 2px; background: rgba(161,7,21,.35); transition: height .2s; }
+.zapia[data-voice="listening"] .zapia__vstate i { background: var(--red); animation: zeq .9s ease-in-out infinite; }
+.zapia[data-voice="speaking"] .zapia__vstate i { background: var(--mustard-2); animation: zeq .7s ease-in-out infinite; }
+.zapia[data-voice="thinking"] .zapia__vstate i { background: var(--red); height: 5px; animation: zdot 1s infinite; }
+.zapia__vstate i:nth-child(2) { animation-delay: .15s !important; } .zapia__vstate i:nth-child(3) { animation-delay: .3s !important; } .zapia__vstate i:nth-child(4) { animation-delay: .45s !important; }
+@keyframes zeq { 0%, 100% { height: 4px; } 50% { height: 16px; } }
+.zapia[data-voice="speaking"] .zapia__voice { cursor: pointer; }
+.zapia[data-voice="listening"] .zapia__vstatus, .zapia[data-voice="speaking"] .zapia__vstatus { color: var(--red-deep); }
+.zapia__hands { display: inline-flex; align-items: center; gap: 6px; flex: none; font-weight: 700; color: var(--red-deep); cursor: pointer; user-select: none; }
+.zapia__hands input { appearance: none; -webkit-appearance: none; width: 32px; height: 18px; border-radius: 999px; background: var(--cream-2); position: relative; cursor: pointer; transition: background .2s; margin: 0; }
+.zapia__hands input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s var(--ease); }
+.zapia__hands input:checked { background: var(--red); }
+.zapia__hands input:checked::after { transform: translateX(14px); }
+.zapia__hands input:focus-visible { outline: 3px solid var(--mustard); outline-offset: 2px; }
+.zapia__mic {
+  position: relative; flex: none; width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--red); background: #fff; color: var(--red);
+  display: grid; place-items: center; transition: background .2s, color .2s, transform .2s var(--ease);
+}
+.zapia__mic[hidden] { display: none; }
+.zapia__mic:hover { background: var(--cream-2); }
+.zapia[data-voice="listening"] .zapia__mic { background: var(--red); color: var(--cream); }
+.zapia[data-voice="listening"] .zapia__mic::after { content: ""; position: absolute; inset: -2px; border-radius: 50%; box-shadow: 0 0 0 0 rgba(223,47,56,.55); animation: zring 1.3s ease-out infinite; }
+@keyframes zring { to { box-shadow: 0 0 0 14px rgba(223,47,56,0); } }
+.zapia[data-voice="thinking"] .zapia__mic { opacity: .6; }
+.zapia[data-voice="speaking"] .zapia__mic { background: var(--mustard); border-color: var(--mustard-2); color: var(--wine); }
+@media (prefers-reduced-motion: reduce) {
+  .zapia__vstate i, .zapia__mic::after { animation: none !important; }
+  .zapia[data-voice="listening"] .zapia__vstate i, .zapia[data-voice="speaking"] .zapia__vstate i { height: 12px; }
+}
+@media (max-width: 560px) {
+  .zcard { width: 100%; }
+  .zapia__form { padding-bottom: 8px; }
+  .zapia__mic, .zapia__send { width: 44px; height: 44px; }
+}
 
 /* ---------- reveal ---------- */
 .reveal { opacity: 0; transform: translateY(26px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
@@ -1085,4 +1167,7 @@ section[id] { scroll-margin-top: 84px; }
   .timeline { margin-top: 26px; }
 
   .jobs { padding-bottom: 56px; }
+}
+@media (max-width: 560px) {
+  body.zapia-open .toast { bottom: calc(176px + env(safe-area-inset-bottom)); }
 }

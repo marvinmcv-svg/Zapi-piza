@@ -29,18 +29,7 @@
   /* =========================================================
      Catalog: everything that can go in the cart
      ========================================================= */
-  const catalog = {};
-  const sizeShort = { familiar: "Familiar", jr: "Jr." };
-  Z.menu.forEach((cat) => cat.items.forEach((it) => {
-    catalog[it.id] = { name: cat.size === "jr" ? it.name : `${it.name} (${sizeShort[cat.size]})`, price: it.price };
-  }));
-  Z.combos.forEach((c) => (catalog[c.id] = { name: c.name, price: c.price }));
-  catalog[Z.yapa.id] = { name: Z.yapa.name, price: Z.yapa.price };
-  Z.addons.sodas.forEach((s) => (catalog[s.id] = { name: s.name, price: s.price }));
-  const addonGroups = { extra: ["Extra", Z.addons.extras], salsa: ["Salsa", Z.addons.salsas], borde: ["", Z.addons.bordes] };
-  Object.entries(addonGroups).forEach(([key, [label, g]]) => g.items.forEach((name) => {
-    catalog[`${key}:${name}`] = { name: label ? `${label} ${name.toLowerCase()}` : name, price: g.price };
-  }));
+  const catalog = Z.catalog();
 
   /* =========================================================
      Static renders
@@ -582,14 +571,23 @@
   });
 
   /* =========================================================
-     Zap-IA (AI receptionist)
+     Zap-IA (AI ordering assistant): chat + live cart + voice
+     Server streams NDJSON events (text, cart, options, readback, location, order, handoff, state, error).
      ========================================================= */
   const zapia = $("[data-zapia]"), zbtn = $(".zbtn"), zlog = $("[data-zlog]"), zform = $("[data-zform]"), zinput = zform.elements.q;
-  const ZKEY = "zapi.zapia.v1";
-  let history = [];
-  try { history = JSON.parse(sessionStorage.getItem(ZKEY)) || []; } catch { history = []; }
+  const zchips = $("[data-zchips]"), zsend = $(".zapia__send"), zmic = $("[data-zmic]");
+  const zvoice = $("[data-zvoice]"), zvstatus = $("[data-zvstatus]"), zhands = $("[data-zhands]");
+  const ZKEY = "zapi.zapia.v1", SKEY = "zapi.zapia.state.v2", MKEY = "zapi.mipedido.v1";
+  const load = (store, k, d) => { try { const v = JSON.parse(store.getItem(k)); return v == null ? d : v; } catch { return d; } };
+  let history = load(sessionStorage, ZKEY, []);
+  if (!Array.isArray(history)) history = [];
+  let zstate = load(sessionStorage, SKEY, {});
+  if (!zstate || typeof zstate !== "object" || Array.isArray(zstate)) zstate = {};
+  let mipedido = load(localStorage, MKEY, []);
+  if (!Array.isArray(mipedido)) mipedido = [];
   let busy = false;
-  const GREETING = "¡Hola! Soy **Zap-IA** 🍕, la recepcionista virtual de Zapi. Preguntame por el menú, precios, promos o sucursales y te ayudo al toque.";
+  const GREETING = "¡Hola! Soy **Zap-IA** 🍕, la recepcionista virtual de Zapi. Te ayudo con el menú, las promos y a armar tu pedido. Escribime o tocá el micrófono 🎙️ y pedime por voz.";
+  const DEFAULT_CHIPS = ["¿Qué promos hay hoy?", "Quiero una pizza", "¿Qué sucursales están abiertas?", "Opciones sin carne"];
 
   function md(text) {
     const lines = esc(text).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").split("\n");
@@ -602,20 +600,79 @@
     }
     return html + (list ? "</ul>" : "");
   }
+  const scrollLog = () => { zlog.scrollTop = zlog.scrollHeight; };
   function addMsg(role, html) {
     const el = document.createElement("div");
     el.className = `zmsg zmsg--${role}`;
     el.innerHTML = html;
     zlog.appendChild(el);
-    zlog.scrollTop = zlog.scrollHeight;
+    scrollLog();
     return el;
+  }
+  function addCard(cls, html) {
+    const el = document.createElement("div");
+    el.className = `zcard ${cls}`;
+    el.innerHTML = html;
+    zlog.appendChild(el);
+    scrollLog();
+    return el;
+  }
+  function renderChips() {
+    const list = history.length ? [] : (mipedido.length ? ["🍕 Lo de siempre", ...DEFAULT_CHIPS.slice(0, 3)] : DEFAULT_CHIPS);
+    zchips.innerHTML = list.map((t) => `<button type="button" data-zsend="${esc(t)}">${esc(t)}</button>`).join("");
+    zchips.hidden = !list.length;
   }
   function renderLog() {
     zlog.innerHTML = "";
     addMsg("bot", md(GREETING));
     history.forEach((m) => addMsg(m.role === "user" ? "me" : "bot", md(m.content)));
-    $("[data-zchips]").hidden = history.length > 0;
+    renderChips();
   }
+  function saveZ() {
+    sessionStorage.setItem(ZKEY, JSON.stringify(history.slice(-20)));
+    sessionStorage.setItem(SKEY, JSON.stringify(zstate));
+    localStorage.setItem(MKEY, JSON.stringify(mipedido.slice(0, 3)));
+  }
+
+  /* ---------- cards ---------- */
+  function applyCart(next) {
+    const clean = {};
+    Object.entries(next || {}).forEach(([id, q]) => { const n = Math.floor(Number(q)); if (catalog[id] && n > 0) clean[id] = Math.min(n, 50); });
+    cart = clean;
+    renderCart();
+  }
+  function cartCardHtml() {
+    const ids = Object.keys(cart);
+    if (!ids.length) return `<p class="zcard__title">Tu pedido está vacío</p>`;
+    return `<p class="zcard__title">Tu pedido · ${count()} ${count() === 1 ? "producto" : "productos"}</p>
+      <ul class="zcard__lines">${ids.map((id) => `<li><span><b>${cart[id]} ×</b> ${esc(catalog[id].name)}</span><em>${fmt(catalog[id].price * cart[id])}</em></li>`).join("")}</ul>
+      <div class="zcard__total"><span>Total productos</span><strong>${fmt(total())}</strong></div>
+      <div class="zcard__actions"><button type="button" class="zbtn2" data-zcart-open>Ver pedido</button></div>`;
+  }
+  function readbackHtml(s) {
+    const rows = [["Entrega", s.entrega], ["Sucursal", s.sucursal], ["Cuándo", s.cuando], ["Nombre", s.nombre], ["Pago", s.pago], ["Nota", s.nota]].filter(([, v]) => v);
+    return `<p class="zcard__title">Resumen de tu pedido</p>
+      <ul class="zcard__lines">${(s.lines || []).map((l) => `<li><span><b>${esc(l.qty)} ×</b> ${esc(l.name)}</span><em>${fmt(l.subtotal)}</em></li>`).join("")}</ul>
+      <div class="zcard__total"><span>Total productos</span><strong>${esc(s.total_text || "")}</strong></div>
+      <dl class="zcard__dl">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
+      ${s.aclaracion ? `<p class="zcard__fine">${esc(s.aclaracion)}</p>` : ""}
+      <div class="zopts"><button type="button" class="is-main" data-zsend="Sí, confirmar">Sí, confirmar</button><button type="button" data-zsend="Cambiar algo">Cambiar algo</button></div>`;
+  }
+  const WA_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Z"/></svg>';
+  const safeUrl = (u) => (/^https:\/\/wa\.me\//.test(String(u || "")) ? String(u) : "");
+  function orderHtml(ev) {
+    const url = safeUrl(ev.url);
+    return `<p class="zcard__title">Pedido ${esc(ev.id || "")} listo 🎉</p>
+      <p class="zcard__sub">Para ${esc(ev.branch || "tu sucursal")}${ev.total ? ` · ${esc(ev.total)}` : ""}</p>
+      ${url ? `<a class="zwa" href="${esc(url)}" target="_blank" rel="noopener">${WA_ICON} Enviar pedido por WhatsApp</a>` : ""}
+      <p class="zcard__fine">Tocá enviar en WhatsApp. La sucursal te confirma el pedido y el tiempo de entrega por ahí.</p>`;
+  }
+  function handoffHtml(ev) {
+    const url = safeUrl(ev.url);
+    return url ? `<a class="zwa zwa--ghost" href="${esc(url)}" target="_blank" rel="noopener">${WA_ICON} Hablar con una persona (${esc(ev.to || "Zapi")})</a>` : "";
+  }
+
+  /* ---------- open / close ---------- */
   function openZapia() {
     renderLog();
     zapia.classList.add("is-open"); zapia.setAttribute("aria-hidden", "false");
@@ -624,6 +681,7 @@
     setTimeout(() => zinput.focus(), 200);
   }
   function closeZapia() {
+    stopVoice();
     zapia.classList.remove("is-open"); zapia.setAttribute("aria-hidden", "true");
     zbtn.classList.remove("is-hidden");
     document.body.classList.remove("zapia-open");
@@ -631,51 +689,288 @@
   }
   $$("[data-zapia-open]").forEach((b) => b.addEventListener("click", openZapia));
   $("[data-zapia-close]").addEventListener("click", closeZapia);
-  $("[data-zchips]").addEventListener("click", (e) => { if (e.target.matches("button")) ask(e.target.textContent); });
+  zchips.addEventListener("click", (e) => { const b = e.target.closest("[data-zsend]"); if (b) ask(b.dataset.zsend); });
   zform.addEventListener("submit", (e) => { e.preventDefault(); ask(zinput.value); });
-  zlog.addEventListener("click", (e) => { if (e.target.closest("[data-zgo]")) closeZapia(); });
+  zlog.addEventListener("click", (e) => {
+    if (e.target.closest("[data-zgo]")) return closeZapia();
+    const s = e.target.closest("[data-zsend]");
+    if (s && !busy) return ask(s.dataset.zsend);
+    if (e.target.closest("[data-zcart-open]")) return openCart();
+    if (e.target.closest("[data-zloc]")) return shareLocation(e.target.closest("[data-zloc]"));
+  });
+
+  function shareLocation(btn) {
+    if (!navigator.geolocation) { addMsg("bot", md("Tu navegador no me deja ver la ubicación. Escribime la dirección y una referencia (ej. *frente a la plaza*) 📍")); return; }
+    btn.disabled = true; btn.textContent = "Buscando tu ubicación…";
+    navigator.geolocation.getCurrentPosition((pos) => {
+      zstate.order = { ...(zstate.order || {}), location: { lat: +pos.coords.latitude.toFixed(6), lng: +pos.coords.longitude.toFixed(6) } };
+      saveZ();
+      btn.textContent = "📍 Ubicación compartida";
+      ask("📍 Te comparto mi ubicación");
+    }, () => {
+      btn.disabled = false; btn.textContent = "📍 Compartir mi ubicación";
+      addMsg("bot", md("No pude obtener tu ubicación 😅. Escribime la dirección y una referencia (ej. *portón rojo, frente a la plaza*) y seguimos."));
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+  }
 
   const fallbackHtml = (lead) => `${lead} Mientras tanto, mirá <a href="#menu" data-zgo>el menú</a> o hacé tu pedido con <a href="#pedir" data-zgo>Pedir por WhatsApp</a> 🍕`;
 
-  async function ask(q) {
+  async function ask(q, opts = {}) {
     q = (q || "").trim();
     if (!q || busy) return;
-    busy = true; zinput.value = ""; zform.querySelector("button").disabled = true;
-    $("[data-zchips]").hidden = true;
+    const voice = !!opts.voice;
+    stopSpeaking();
+    busy = true; zinput.value = ""; zsend.disabled = true;
+    zchips.hidden = true;
+    $$(".zopts", zlog).forEach((o) => o.remove()); // old quick replies are stale now
     history.push({ role: "user", content: q.slice(0, 600) });
     addMsg("me", md(q));
-    const bot = addMsg("bot", '<span class="zdots"><i></i><i></i><i></i></span>');
-    let text = "";
+    if (voice) setV("thinking", "Pensando…");
+    let bubble = addMsg("bot", '<span class="zdots"><i></i><i></i><i></i></span>'), bubbleText = "";
+    const parts = [], seen = new Set();
+    let cartCard = null, gotState = false;
+    const newBubble = () => { if (!bubble) { bubble = addMsg("bot", ""); bubbleText = ""; } };
+    const closeBubble = () => { if (bubble && !bubbleText) bubble.remove(); bubble = null; };
+    function onEvent(ev) {
+      if (!ev || typeof ev !== "object") return;
+      switch (ev.type) {
+        case "text":
+          if (typeof ev.text !== "string" || !ev.text) return;
+          newBubble();
+          bubbleText += ev.text;
+          bubble.innerHTML = md(bubbleText);
+          if (!parts.length || parts[parts.length - 1].card) parts.push({ text: "" });
+          parts[parts.length - 1].text += ev.text;
+          break;
+        case "cart":
+          applyCart(ev.cart);
+          closeBubble();
+          if (cartCard) { cartCard.innerHTML = cartCardHtml(); zlog.appendChild(cartCard); } else cartCard = addCard("zcard--cart", cartCardHtml());
+          parts.push({ card: true });
+          seen.add("carrito");
+          break;
+        case "options": {
+          const o = (Array.isArray(ev.options) ? ev.options : []).filter((x) => typeof x === "string" && x.trim()).slice(0, 4);
+          if (!o.length) return;
+          closeBubble();
+          const el = document.createElement("div");
+          el.className = "zopts";
+          el.innerHTML = o.map((t) => `<button type="button" data-zsend="${esc(t)}">${esc(t)}</button>`).join("");
+          zlog.appendChild(el);
+          parts.push({ card: true });
+          break;
+        }
+        case "readback":
+          closeBubble();
+          addCard("zcard--receipt", readbackHtml(ev.summary || {}));
+          parts.push({ card: true });
+          seen.add("resumen del pedido");
+          break;
+        case "location":
+          closeBubble();
+          addCard("zcard--loc", `<button type="button" class="zbtn2 zbtn2--loc" data-zloc>📍 Compartir mi ubicación</button><p class="zcard__fine">Ideal si no tenés número de casa: mandamos el pin a la sucursal.</p>`);
+          parts.push({ card: true });
+          break;
+        case "order":
+          closeBubble();
+          addCard("zcard--order", orderHtml(ev));
+          parts.push({ card: true });
+          seen.add(`pedido ${ev.id || ""}`.trim());
+          toast(`🎉 Pedido ${ev.id || ""} listo: envialo por WhatsApp`);
+          break;
+        case "handoff": {
+          const h = handoffHtml(ev);
+          if (!h) return;
+          closeBubble();
+          addCard("zcard--handoff", h);
+          parts.push({ card: true });
+          break;
+        }
+        case "state": {
+          const s = ev.state || {};
+          gotState = true;
+          zstate = { prevCart: s.prevCart || null, order: s.order || {}, stage: s.stage || "browsing", token: s.token || null, upsold: !!s.upsold, newsShown: !!s.newsShown };
+          if (Array.isArray(s.history)) mipedido = s.history.slice(0, 3);
+          if (s.cart) applyCart(s.cart);
+          if (cartCard) cartCard.innerHTML = cartCardHtml();
+          break;
+        }
+        case "error":
+          throw { kind: "net" };
+      }
+      scrollLog();
+    }
     try {
       const res = await fetch("/api/zapia", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history.slice(-16) }),
+        body: JSON.stringify({ messages: history.slice(-16), state: { ...zstate, cart, history: mipedido }, channel: voice ? "voice" : "text" }),
       });
       if (res.status === 503 || res.status === 404 || res.status === 501 || res.status === 405) throw { kind: "setup" };
       if (res.status === 429) throw { kind: "rate" };
       if (!res.ok || !res.body) throw { kind: "net" };
       const reader = res.body.getReader(), dec = new TextDecoder();
+      let buf = "";
+      const flush = (final) => {
+        const lines = buf.split("\n");
+        buf = final ? "" : lines.pop();
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          let ev;
+          try { ev = JSON.parse(line); } catch { continue; }
+          onEvent(ev);
+        }
+      };
       for (;;) {
         const { value, done } = await reader.read();
         if (done) break;
-        text += dec.decode(value, { stream: true });
-        if (text.includes("[[error]]")) throw { kind: "net" };
-        bot.innerHTML = md(text);
-        zlog.scrollTop = zlog.scrollHeight;
+        buf += dec.decode(value, { stream: true });
+        flush(false);
       }
-      if (!text.trim()) throw { kind: "net" };
-      history.push({ role: "assistant", content: text.trim() });
+      buf += dec.decode();
+      flush(true);
+      const text = parts.filter((p) => !p.card).map((p) => p.text.trim()).filter(Boolean).join("\n\n");
+      if (!text && !seen.size && !gotState) throw { kind: "net" };
+      if (bubble && !bubbleText) { bubble.remove(); bubble = null; }
+      history.push({ role: "assistant", content: (text || `(Zap-IA mostró: ${[...seen].join(", ") || "opciones"})`).slice(0, 4000) });
+      saveZ();
+      busy = false; zsend.disabled = false;
+      if (voice && text) speak(text);
+      else { if (voice) setV("idle"); zinput.focus(); }
     } catch (err) {
       history.pop(); // don't keep an unanswered question in the context
-      bot.className = "zmsg zmsg--err";
-      bot.innerHTML = fallbackHtml(
+      if (!bubble) bubble = addMsg("bot", "");
+      bubble.className = "zmsg zmsg--err";
+      bubble.innerHTML = fallbackHtml(
         err.kind === "setup" ? "Zap-IA se está preparando y muy pronto va a estar atendiendo 🛠️."
         : err.kind === "rate" ? "¡Uf, muchas preguntas seguidas! Esperá un minutito 🙏."
         : "Se me cortó la conexión 😅. Probá de nuevo en un rato.");
+      saveZ();
+      busy = false; zsend.disabled = false;
+      if (voice) { handsFree = false; zhands.checked = false; setV("idle"); }
+      zinput.focus();
     }
-    sessionStorage.setItem(ZKEY, JSON.stringify(history.slice(-20)));
-    busy = false; zform.querySelector("button").disabled = false; zinput.focus();
   }
+
+  /* ---------- voice mode (Web Speech API) ---------- */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const canSpeak = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+  let rec = null, vmode = "idle", handsFree = false, wakeLock = null, ttsVoice = null;
+  const VSTATUS = { idle: "Tocá el micrófono y hablame", listening: "Te escucho…", thinking: "Pensando…", speaking: "Hablando… tocá para interrumpir" };
+  if (SR) { zmic.hidden = false; zvoice.hidden = false; }
+  function setV(mode, status) {
+    vmode = mode;
+    zapia.dataset.voice = mode;
+    zvstatus.textContent = status || VSTATUS[mode];
+    zmic.setAttribute("aria-pressed", String(mode === "listening"));
+    zmic.setAttribute("aria-label", mode === "listening" ? "Dejar de escuchar" : mode === "speaking" ? "Interrumpir y hablar" : "Hablar con Zap-IA");
+    syncWake();
+  }
+  async function syncWake() {
+    const want = (vmode !== "idle" || handsFree) && zapia.classList.contains("is-open");
+    if (want && !wakeLock && "wakeLock" in navigator && document.visibilityState === "visible") {
+      try { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); } catch { wakeLock = null; }
+    } else if (!want && wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+  }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") syncWake(); });
+
+  function pickVoice() {
+    if (!canSpeak) return null;
+    const voices = speechSynthesis.getVoices();
+    const lang = (v) => (v.lang || "").replace("_", "-").toLowerCase();
+    for (const pref of ["es-bo", "es-419", "es-mx", "es-us", "es-es"]) { const v = voices.find((x) => lang(x).startsWith(pref)); if (v) return v; }
+    return voices.find((x) => lang(x).startsWith("es")) || null;
+  }
+  if (canSpeak) { ttsVoice = pickVoice(); speechSynthesis.addEventListener?.("voiceschanged", () => { ttsVoice = pickVoice(); }); }
+  function forSpeech(t) {
+    return String(t)
+      .replace(/https?:\/\/\S+/g, "")
+      .replace(/\*\*?|__|`|#+\s/g, "")
+      .replace(/^\s*[-•*]\s+/gm, "")
+      .replace(/Bs\.?\s?(\d+(?:[.,]\d+)?)/g, "$1 bolivianos")
+      .replace(/×/g, " por ").replace(/c\/u/g, "cada una")
+      .replace(/[\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}️‍]/gu, "")
+      .replace(/\s+/g, " ").replace(/\s+([.,!?;:])/g, "$1").trim();
+  }
+  function stopSpeaking() {
+    if (canSpeak && (speechSynthesis.speaking || speechSynthesis.pending)) speechSynthesis.cancel();
+    if (vmode === "speaking") setV("idle");
+  }
+  function speak(text) {
+    const said = forSpeech(text);
+    if (!canSpeak || !said) { afterSpeak(); return; }
+    // Chrome cuts long utterances: queue sentence-sized chunks
+    const chunks = said.match(/[^.!?¿¡]+[.!?]*|[¿¡][^.!?]+[.!?]*/g) || [said];
+    const merged = [];
+    chunks.forEach((c) => { c = c.trim(); if (!c) return; if (merged.length && (merged[merged.length - 1] + " " + c).length < 180) merged[merged.length - 1] += " " + c; else merged.push(c); });
+    speechSynthesis.cancel();
+    setV("speaking");
+    merged.forEach((c, i) => {
+      const u = new SpeechSynthesisUtterance(c);
+      if (ttsVoice) { u.voice = ttsVoice; u.lang = ttsVoice.lang; } else u.lang = "es-ES";
+      u.rate = 1.05;
+      if (i === merged.length - 1) u.onend = () => { if (vmode === "speaking") afterSpeak(); };
+      u.onerror = () => { if (vmode === "speaking") afterSpeak(); };
+      speechSynthesis.speak(u);
+    });
+  }
+  function afterSpeak() {
+    setV("idle");
+    if (handsFree && zapia.classList.contains("is-open") && !busy) listen(true);
+  }
+  function listen(auto = false) {
+    if (!SR || busy) return;
+    if (canSpeak) speechSynthesis.cancel(); // barge-in
+    if (rec) { try { rec.abort(); } catch {} rec = null; }
+    const r = new SR();
+    rec = r;
+    r.lang = "es-BO"; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
+    let finalText = "", err = "";
+    r.onresult = (e) => {
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const res = e.results[i];
+        if (res.isFinal) finalText += res[0].transcript; else interim += res[0].transcript;
+      }
+      zinput.value = (finalText + interim).trim();
+    };
+    r.onerror = (e) => { err = e.error || "error"; };
+    r.onend = () => {
+      if (rec !== r) return;
+      rec = null;
+      const t = (finalText || zinput.value).trim();
+      if (t && !err) { ask(t, { voice: true }); return; }
+      zinput.value = "";
+      setV("idle");
+      if (err === "not-allowed" || err === "service-not-allowed") {
+        handsFree = false; zhands.checked = false; syncWake();
+        addMsg("bot", md("No tengo permiso para usar el micrófono 🎙️. Activalo en tu navegador o escribime nomás, te ayudo igual."));
+      } else if (err === "aborted") {
+        /* user or app stopped it */
+      } else if (auto || err === "no-speech") {
+        if (handsFree) { handsFree = false; zhands.checked = false; syncWake(); }
+        zvstatus.textContent = "No te escuché. Tocá el micrófono para intentar de nuevo.";
+      } else if (err) {
+        addMsg("bot", md("Se me complicó escucharte 😅. Probá de nuevo o escribime."));
+      }
+    };
+    try { r.start(); setV("listening"); } catch { rec = null; setV("idle"); }
+  }
+  function stopVoice() {
+    handsFree = false; zhands.checked = false;
+    if (rec) { const r = rec; rec = null; try { r.abort(); } catch {} }
+    if (canSpeak) speechSynthesis.cancel();
+    setV("idle");
+  }
+  zmic.addEventListener("click", () => {
+    if (vmode === "listening" && rec) { try { rec.stop(); } catch {} return; }
+    listen();
+  });
+  zvoice.addEventListener("click", (e) => { if (vmode === "speaking" && !e.target.closest(".zapia__hands")) { stopSpeaking(); zinput.focus(); } });
+  zhands.addEventListener("change", () => {
+    handsFree = zhands.checked;
+    if (handsFree && vmode === "idle" && !busy) listen(); else syncWake();
+  });
+  setV("idle");
 
   /* ---------- mobile action bar: visible after the hero, hidden over the funnel ---------- */
   const mbar = $("[data-mbar]");

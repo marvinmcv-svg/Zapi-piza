@@ -569,14 +569,17 @@
       <button class="iconbtn iconbtn--dark" data-zapia-close aria-label="Cerrar">✕</button>
     </header>
     <div class="zapia__log" data-zlog aria-live="polite"></div>
-    <div class="zapia__chips" data-zchips>
-      <button type="button">¿Qué sucursales están abiertas?</button>
-      <button type="button">¿Cuál es la promo de hoy?</button>
-      <button type="button">¿Qué lleva la Doriloco?</button>
-      <button type="button">Opciones sin carne</button>
+    <div class="zapia__chips" data-zchips></div>
+    <div class="zapia__voice" data-zvoice hidden>
+      <span class="zapia__vstate" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="zapia__vstatus" data-zvstatus role="status">Tocá el micrófono y hablame</span>
+      <label class="zapia__hands"><input type="checkbox" data-zhands /><span>Manos libres</span></label>
     </div>
     <form class="zapia__form" data-zform>
-      <input name="q" autocomplete="off" maxlength="600" placeholder="Preguntá sobre menú, precios, sucursales…" aria-label="Tu pregunta" />
+      <input name="q" autocomplete="off" maxlength="600" placeholder="Escribí o tocá el micrófono…" aria-label="Tu mensaje" />
+      <button type="button" class="zapia__mic" data-zmic aria-label="Hablar con Zap-IA" aria-pressed="false" hidden>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      </button>
       <button class="zapia__send" aria-label="Enviar">➤</button>
     </form>
     <p class="zapia__legal">Zap-IA es una IA y puede equivocarse. Confirmá tu pedido por WhatsApp.</p>
