@@ -43,7 +43,7 @@ What it does:
 - **Order in one sentence** ("una chori y una peppe con coca de 2 litros"), asks one missing detail at a time, offers quick-reply chips.
 - **Menu answers:** ingredients (from `js/data.js`, with an allergen disclaimer), meat-free options, what's new, branches and opening hours.
 - **Deals:** today's promo, the Yapa, and combo savings for the current cart ("por Bs 8 más te llevás la soda"); one upsell per conversation.
-- **Checkout:** delivery or pick-up, branch, address or a shared map pin (**Entrega con Pin**), time; full read-back, then an explicit "sí". It then shows a "Send via WhatsApp" button to the chosen branch. Duplicate "sí" never creates a second order.
+- **Checkout:** delivery or pick-up, branch, address or a shared map pin (**Entrega con Pin**), time; full read-back, then an explicit "sí". It then shows a "Send via WhatsApp" button to the chosen branch. Duplicate "sí" never creates a second order. The confirmation is enforced by the server: an order only goes through when the customer answers "sí" in a later message than the read-back (the model can't confirm on its own).
 - **Mi Pedido:** the last 3 orders are saved on the device; "lo de siempre" or 🍕 reloads them.
 - **Order status** (last order + the branch's WhatsApp) and **human handoff** (complaints, big events, allergies) to the branch or the call centre.
 - **Voice mode:** a mic button (Web Speech API) with listening/thinking/speaking states, push-to-talk or hands-free, tap to interrupt, and the screen kept awake. It reads prices as words. Hidden on browsers without speech recognition.
