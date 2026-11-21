@@ -46,9 +46,10 @@ Without a key, the chat shows a friendly "coming soon" message and points to the
 
 A live WhatsApp phone mockup previews the exact message as it is filled in.
 
-## ⚠️ Configure before launch
-`js/data.js` → `config.whatsapp`: the **orders** WhatsApp number isn't published on Instagram, so it is empty for now.
-While it's empty, checkout opens WhatsApp's share sheet with the order pre-filled.
+## WhatsApp routing
+Each branch has its own WhatsApp (from linktr.ee/zapi.piza), stored in `js/data.js` → `branches[].whatsapp`.
+The funnel sends orders and bookings to the selected branch's number. General questions can go to the Call Center (`config.callCenter`, 76044549).
+If a branch changes its number, update it there.
 
 ## Run locally
 ```bash

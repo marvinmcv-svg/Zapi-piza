@@ -261,6 +261,7 @@
                 </div>
                 <label data-when-time hidden>Hora<input type="time" name="whenTime" step="900" /></label>
               </div>
+              <p class="fhint">📲 Tu mensaje va directo al WhatsApp de la sucursal que elijas.</p>
               <label>Nota (opcional)<textarea name="note" rows="2" placeholder="Sin cebolla, cortada en 12, extra servilletas…"></textarea></label>
             </fieldset>
 
@@ -268,7 +269,7 @@
             <fieldset class="fstep" data-step="4" hidden>
               <legend class="sr">Enviar</legend>
               <div class="fsummary" data-summary></div>
-              <p class="fhint">Se abrirá WhatsApp con tu mensaje listo. Solo tocá enviar y Zapi te confirma por ahí.</p>
+              <p class="fhint">Se abrirá WhatsApp con tu mensaje listo, dirigido a la sucursal que elegiste. Solo tocá enviar y te confirman por ahí.</p>
             </fieldset>
 
             <div class="fnav">
@@ -289,7 +290,7 @@
             <div class="phone__head">
               <span class="phone__back">‹</span>
               <img src="assets/img/logo.png" alt="" width="38" height="38" />
-              <div><b>Zapi Piza</b><small>en línea</small></div>
+              <div><b data-phone-name>Zapi Piza</b><small><span data-phone-num></span> · en línea</small></div>
             </div>
             <div class="phone__chat" data-phone-chat>
               <span class="phone__day">Hoy</span>

@@ -162,25 +162,31 @@
 
   /* ---------- branches ---------- */
   const branchSel = $("[data-branch-select]");
+  const CALL_CENTER = "Call Center";
+  const fmtPhone = (n) => n.replace(/^591/, "").replace(/(\d{4})(\d{4})/, "$1 $2");
+  const branchByName = (name) => Z.branches.find((b) => b.name === name);
   function renderBranches() {
     const n = nowInBolivia();
     const openCount = Z.branches.filter((b) => n.minutes >= toMin(b.open) && n.minutes < toMin(b.close)).length;
     $("[data-branches]").innerHTML = Z.branches.map((b) => {
       const s = branchStatus(b, n);
-      const q = encodeURIComponent(`Zapi Piza ${b.name} Santa Cruz de la Sierra Bolivia`);
-      return `<a class="branch" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">
+      const q = encodeURIComponent(b.plus ? `${b.plus} Santa Cruz de la Sierra` : `Zapi Piza ${b.name} Santa Cruz de la Sierra Bolivia`);
+      return `<article class="branch">
         <div class="branch__top"><h3>${esc(b.name)}</h3><span class="pill pill--${s.cls}">${s.text}</span></div>
         <p class="branch__hours">${b.open} – ${b.close} · Lun a Dom</p>
         ${b.address ? `<p class="branch__addr">📍 ${esc(b.address)}</p>` : ""}
-        <span class="branch__map">Cómo llegar ↗</span>
-      </a>`;
+        <div class="branch__actions">
+          <a class="branch__map" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Cómo llegar ↗</a>
+          <a class="branch__wa" href="https://wa.me/${b.whatsapp}" target="_blank" rel="noopener" aria-label="WhatsApp de ${esc(b.name)}">WhatsApp ${esc(fmtPhone(b.whatsapp))}</a>
+        </div>
+      </article>`;
     }).join("");
     $("[data-now]").innerHTML = `${n.label} en Santa Cruz · <b>${openCount} de ${Z.branches.length}</b> abiertas`;
     const current = branchSel.value;
     branchSel.innerHTML = `<option value="">Elegí una sucursal</option>` + Z.branches.map((b) => {
       const s = branchStatus(b, n);
       return `<option value="${esc(b.name)}">${esc(b.name)} · ${s.text}</option>`;
-    }).join("");
+    }).join("") + `<option value="${CALL_CENTER}" data-cc>Call Center · consultas generales</option>`;
     branchSel.value = current;
   }
   renderBranches();
@@ -343,8 +349,15 @@
     return L.join("\n");
   }
 
+  function recipient() {
+    const b = branchByName(val("branch"));
+    return b ? { number: b.whatsapp, label: `Zapi ${b.name}` } : { number: Z.config.callCenter, label: "Zapi Call Center" };
+  }
   const phoneOut = $("[data-phone-out]"), phoneChat = $("[data-phone-chat]");
   function updatePreview() {
+    const to = recipient();
+    $("[data-phone-name]").textContent = to.label;
+    $("[data-phone-num]").textContent = `+591 ${fmtPhone(to.number)}`;
     const t = new Date().toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit", hour12: false });
     phoneOut.innerHTML = esc(buildMessage()).replace(/\*(.+?)\*/g, "<b>$1</b>") + `<time>${t}</time>`;
     $$("[data-phone-time]").forEach((el) => (el.textContent = t));
@@ -361,6 +374,7 @@
     if (step === 3) {
       if (!val("name")) return "¿Cómo te llamás?";
       if (!val("branch")) return "Elegí una sucursal";
+      if (val("branch") === CALL_CENTER && F.intent !== "question") return "Elegí la sucursal que va a preparar tu pedido";
       if (F.intent === "delivery" && !val("address")) return "Necesitamos tu dirección 📍";
       if (isOrder() && F.when === "Programar" && !val("whenTime")) return "¿A qué hora la querés?";
     }
@@ -372,7 +386,8 @@
     if (isOrder()) rows.push(["Pedido", Object.keys(cart).map((id) => `${cart[id]} × ${esc(catalog[id].name)}`).join("<br/>")], ["Total", `<b>${fmt(total())}</b>`]);
     if (F.intent === "event") rows.push(["Cuándo", `${esc(fmtDate(val("date")))} ${esc(val("time"))}`], ["Personas", esc(val("people"))]);
     if (F.intent === "question") rows.push(["Consulta", esc(val("question"))]);
-    rows.push(["Nombre", esc(val("name"))], ["Sucursal", esc(val("branch"))]);
+    const to = recipient();
+    rows.push(["Nombre", esc(val("name"))], ["Sucursal", esc(val("branch"))], ["Se envía a", `${esc(to.label)} · WhatsApp +591 ${fmtPhone(to.number)}`]);
     if (F.intent === "delivery") rows.push(["Dirección", esc(val("address"))]);
     $("[data-summary]").innerHTML = `<dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl><button type="button" data-goto-step="1">Editar desde el inicio</button>`;
   }
@@ -388,6 +403,9 @@
     });
     $$("[data-detail]", form).forEach((d) => (d.hidden = d.dataset.detail !== (isOrder() ? "order" : F.intent)));
     $$("[data-only]", form).forEach((d) => (d.hidden = !d.dataset.only.split(" ").includes(F.intent)));
+    const cc = branchSel.querySelector("[data-cc]");
+    if (cc) cc.hidden = F.intent !== "question";
+    if (F.intent !== "question" && branchSel.value === CALL_CENTER) branchSel.value = "";
     $("[data-prev]", form).style.visibility = step === 1 ? "hidden" : "visible";
     $("[data-next]", form).hidden = step === 4;
     $("[data-send]", form).hidden = step !== 4;
@@ -424,9 +442,9 @@
   $("[data-send]", form).addEventListener("click", () => {
     for (const s of [1, 2, 3]) { const err = validate(s); if (err) { go(s); msgEl.textContent = err; return; } }
     const text = encodeURIComponent(buildMessage());
-    const num = (Z.config.whatsapp || "").replace(/\D/g, "");
-    window.open(num ? `https://wa.me/${num}?text=${text}` : `https://wa.me/?text=${text}`, "_blank", "noopener");
-    toast("¡Listo! Terminá de enviarlo en WhatsApp 📲");
+    const to = recipient();
+    window.open(`https://wa.me/${to.number}?text=${text}`, "_blank", "noopener");
+    toast(`¡Listo! Terminá de enviarlo a ${to.label} en WhatsApp 📲`);
   });
   function gotoFunnel() {
     closeCart(false);

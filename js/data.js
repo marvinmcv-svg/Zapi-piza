@@ -7,10 +7,9 @@
 (function (root) {
   const ZAPI = {
     config: {
-      // WhatsApp number for orders, international format without "+" (e.g. "5917XXXXXXX").
-      // Empty: the order number isn't published yet. While empty, the funnel opens
-      // WhatsApp's share sheet with the message pre-filled.
-      whatsapp: "",
+      // Each branch has its own WhatsApp (see branches). This is the Call Center for general questions.
+      // Source: linktr.ee/zapi.piza ("Call Center - Consultas").
+      callCenter: "59176044549",
       instagram: "https://www.instagram.com/zapi.piza/",
       timezone: "America/La_Paz",
       currency: "Bs",
@@ -114,9 +113,9 @@
 
     // "¡6 años se celebran con MUCHO más sabor!" (Df0PAsYFHL9)
     combos: [
-      { id: "combo-chori", name: "Combo Chori", price: 56, note: "Pizza Chori + soda" },
+      { id: "combo-chori", name: "Combo Chori", price: 56, note: "Pizza + soda" },
       { id: "combo-cheese", name: "Combo Cheese", price: 66, note: "Pizza + soda" },
-      { id: "combo-peppe", name: "Combo Zuper Peppe", price: 76, note: "Zuper Peppe + soda", hot: true },
+      { id: "combo-peppe", name: "Combo Zuper Peppe", price: 76, note: "Pizza + soda", hot: true },
       { id: "combo-aniv", name: "Combo Aniversario", price: 96, note: "2 pizzas + soda", star: true },
     ],
 
@@ -133,27 +132,28 @@
     ],
 
     /* ---------------- BRANCHES ---------------- */
-    // "¡ZAPI está más cerca de vos!" (De-Ld4kPZ6o) + Plan 3000 post (Df2y6WUBG9l)
+    // Hours: "¡ZAPI está más cerca de vos!" (De-Ld4kPZ6o). WhatsApp numbers + plus codes: linktr.ee/zapi.piza
+    // (wa.me/message links resolved to each branch's WhatsApp Business number).
     branches: [
-      { name: "Melchor Pinto", open: "11:30", close: "23:30" },
-      { name: "Santos Dumont", open: "11:30", close: "23:30" },
-      { name: "Zoológico", open: "11:30", close: "23:30" },
-      { name: "Piraí", open: "11:30", close: "23:30" },
-      { name: "Alemana", open: "16:30", close: "23:30" },
-      { name: "Remanso", open: "16:30", close: "23:30" },
-      { name: "Plan 3000", open: "16:30", close: "23:30", address: "Av. Paurito, cerca de la Plaza El Mechero" },
-      { name: "Villa 1ro de Mayo", open: "16:30", close: "23:30" },
-      { name: "Pampa de la Isla", open: "16:30", close: "23:30" },
+      { name: "Melchor Pinto", open: "11:30", close: "23:30", whatsapp: "59178008444", plus: "6R8J+W69" },
+      { name: "Santos Dumont", open: "11:30", close: "23:30", whatsapp: "59178594000" },
+      { name: "Zoológico", open: "11:30", close: "23:30", whatsapp: "59177622513" },
+      { name: "Piraí", open: "11:30", close: "23:30", whatsapp: "59178459620" },
+      { name: "Alemana", open: "16:30", close: "23:30", whatsapp: "59177005855", address: "Alemana, 5to anillo" },
+      { name: "Remanso", open: "16:30", close: "23:30", whatsapp: "59162217622" },
+      { name: "Plan 3000", open: "16:30", close: "23:30", whatsapp: "59178224700", plus: "5V7C+FRM", address: "Av. Paurito, cerca de la Plaza El Mechero" },
+      { name: "Villa 1ro de Mayo", open: "16:30", close: "23:30", whatsapp: "59178466767", plus: "6V48+M4" },
+      { name: "Pampa de la Isla", open: "16:30", close: "23:30", whatsapp: "59177727495", plus: "6VMP+39" },
     ],
 
     /* ---------------- OTHER FACTS (for Zap-IA) ---------------- */
     facts: [
       "Zapi Piza es una pizzería cruceña con 6 años (aniversario: 12 de noviembre, el 'Zapi Day').",
       "Tiene 9 sucursales y un centro de producción en Santa Cruz de la Sierra, Bolivia. Atiende de lunes a domingo.",
-      "Se puede pedir por WhatsApp, en el local, o por la app Yango (buscar 'Piza Zapi').",
+      "Se puede pedir por el WhatsApp de cada sucursal, en el local, o por la app Yango (buscar 'Piza Zapi'). Consultas generales: Call Center por WhatsApp al 76044549.",
       "Promo con Yango: si el pedido por Yango tarda más de 30 minutos, el siguiente pedido habilita la opción de recibir una Zapi Personal.",
       "En todas las sucursales hay paletas Palé Picoles (Oreo, grosella, gomitas y más); los viernes todas a Bs 6.",
-      "Búsqueda laboral: Zapi busca Jefe/a de Operaciones; enviar CV o escribir al 76044549 (solo para empleo).",
+      "Búsqueda laboral: Zapi busca Jefe/a de Operaciones; enviar CV o escribir al 76044549.",
       "Instagram: @zapi.piza.",
     ],
 
