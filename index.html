@@ -3,14 +3,36 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Zapi Piza · La pizza que se antoja en Santa Cruz</title>
-  <meta name="description" content="Zapi Piza: 6 años de sabor cruceño y 9 sucursales en Santa Cruz, Bolivia. Combos, promos de la semana, la Yapa del mes y pedidos por WhatsApp." />
+  <title>Zapi Piza · Hecha para compartir · Santa Cruz</title>
+  <meta name="description" content="Zapi Piza: 6 años de sabor cruceño y 9 sucursales en Santa Cruz, Bolivia. Menú completo, promos de la semana, la Yapa del mes y pedidos por WhatsApp a tu sucursal." />
   <meta name="theme-color" content="#DF2F38" />
-  <meta property="og:title" content="Zapi Piza · La pizza que se antoja" />
-  <meta property="og:description" content="6 años · 9 sucursales · Santa Cruz, Bolivia" />
-  <meta property="og:image" content="assets/img/zapiday.webp" />
+  <link rel="canonical" href="https://zapi-piza.vercel.app/" />
+
+  <!-- Link previews (WhatsApp, Facebook, Instagram DM, X, iMessage) -->
   <meta property="og:type" content="website" />
-  <link rel="icon" href="assets/img/logo.png" />
+  <meta property="og:site_name" content="Zapi Piza" />
+  <meta property="og:locale" content="es_BO" />
+  <meta property="og:url" content="https://zapi-piza.vercel.app/" />
+  <meta property="og:title" content="Zapi Piza · Hecha para compartir" />
+  <meta property="og:description" content="9 sucursales en Santa Cruz. Menú, promos y pedidos por WhatsApp a tu Zapi más cercana 🍕" />
+  <meta property="og:image" content="https://zapi-piza.vercel.app/assets/brand/og.jpg" />
+  <meta property="og:image:secure_url" content="https://zapi-piza.vercel.app/assets/brand/og.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Logo de Zapi Piza y una porción de Doriloco: Hecha para compartir." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Zapi Piza · Hecha para compartir" />
+  <meta name="twitter:description" content="9 sucursales en Santa Cruz. Menú, promos y pedidos por WhatsApp." />
+  <meta name="twitter:image" content="https://zapi-piza.vercel.app/assets/brand/og.jpg" />
+
+  <!-- Icons -->
+  <link rel="icon" href="/favicon.ico" sizes="48x48" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/assets/brand/logo-512.png" />
+  <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="apple-mobile-web-app-title" content="Zapi Piza" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet" />
@@ -158,6 +180,7 @@
         </header>
         <div class="tabs reveal" role="tablist" aria-label="Categorías del menú" data-tabs></div>
         <div class="carta__list" data-carta role="tabpanel"></div>
+        <button type="button" class="carta__more" data-carta-more hidden></button>
         <div class="addons reveal" data-addons></div>
       </div>
     </section>
@@ -469,6 +492,18 @@
     </form>
     <p class="zapia__legal">Zap-IA es una IA y puede equivocarse. Confirmá tu pedido por WhatsApp.</p>
   </section>
+
+  <!-- Mobile action bar -->
+  <nav class="mbar" data-mbar aria-label="Acciones rápidas">
+    <button type="button" class="mbar__ai" data-zapia-open aria-label="Preguntale a Zap-IA">
+      <img src="assets/img/logo.png" alt="" width="40" height="40" /><i aria-hidden="true"></i>
+    </button>
+    <button type="button" class="mbar__cart" data-cart-open hidden>
+      <span class="mbar__count" data-mbar-count>0</span>
+      <span class="mbar__total" data-mbar-total>Bs 0</span>
+    </button>
+    <a class="mbar__cta" href="#pedir">Pedir por WhatsApp <span aria-hidden="true">→</span></a>
+  </nav>
 
   <div class="toast" data-toast role="status" aria-live="polite"></div>
 

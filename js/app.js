@@ -86,6 +86,11 @@
         <button class="addbtn" data-add="${it.id}" aria-label="Agregar ${esc(catalog[it.id].name)}">+</button>
       </article>`).join("");
     cartaEl.style.animation = "none"; void cartaEl.offsetWidth; cartaEl.style.animation = "";
+    // phones: show 6 items, then "Ver las N"
+    const more = $("[data-carta-more]");
+    cartaEl.classList.toggle("is-collapsed", cat.items.length > 6);
+    more.hidden = cat.items.length <= 6;
+    more.textContent = `Ver las ${cat.items.length} de ${cat.name} ↓`;
   }
   tabsEl.addEventListener("click", (e) => {
     const t = e.target.closest("[data-cat]"); if (!t) return;
@@ -93,6 +98,10 @@
     renderCarta(t.dataset.cat);
   });
   renderCarta(Z.menu[0].id);
+  $("[data-carta-more]").addEventListener("click", (e) => {
+    cartaEl.classList.remove("is-collapsed");
+    e.currentTarget.hidden = true;
+  });
 
   const A = Z.addons;
   $("[data-addons]").innerHTML = `
@@ -280,6 +289,9 @@
     $("[data-cart-total]").textContent = fmt(total());
     const c = $("[data-cart-count]");
     c.textContent = count();
+    $("[data-mbar-count]").textContent = count();
+    $("[data-mbar-total]").textContent = fmt(total());
+    $(".mbar__cart").hidden = empty;
     if (bump) { c.classList.remove("bump"); void c.offsetWidth; c.classList.add("bump"); }
     renderFunnelCart();
     updatePreview();
@@ -540,11 +552,14 @@
     renderLog();
     zapia.classList.add("is-open"); zapia.setAttribute("aria-hidden", "false");
     zbtn.classList.add("is-hidden");
+    document.body.classList.add("zapia-open");
     setTimeout(() => zinput.focus(), 200);
   }
   function closeZapia() {
     zapia.classList.remove("is-open"); zapia.setAttribute("aria-hidden", "true");
-    zbtn.classList.remove("is-hidden"); zbtn.focus();
+    zbtn.classList.remove("is-hidden");
+    document.body.classList.remove("zapia-open");
+    if (getComputedStyle(zbtn).display !== "none") zbtn.focus();
   }
   $$("[data-zapia-open]").forEach((b) => b.addEventListener("click", openZapia));
   $("[data-zapia-close]").addEventListener("click", closeZapia);
@@ -593,6 +608,20 @@
     sessionStorage.setItem(ZKEY, JSON.stringify(history.slice(-20)));
     busy = false; zform.querySelector("button").disabled = false; zinput.focus();
   }
+
+  /* ---------- mobile action bar: visible after the hero, hidden over the funnel ---------- */
+  const mbar = $("[data-mbar]");
+  const vis = { hero: true, funnel: false, footer: false };
+  const syncBar = () => mbar.classList.toggle("is-on", !vis.hero && !vis.funnel && !vis.footer);
+  const barIO = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.target.matches(".hero")) vis.hero = e.isIntersecting;
+      else if (e.target.matches("#pedir")) vis.funnel = e.isIntersecting;
+      else vis.footer = e.isIntersecting;
+    });
+    syncBar();
+  }, { rootMargin: "-35% 0px -35% 0px" });
+  [$(".hero"), $("#pedir"), $(".footer")].forEach((el) => barIO.observe(el));
 
   /* ---------- boot ---------- */
   go(1);

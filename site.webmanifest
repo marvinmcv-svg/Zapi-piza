@@ -1,0 +1,14 @@
+{
+  "name": "Zapi Piza",
+  "short_name": "Zapi",
+  "description": "Hecha para compartir. Menú, promos y pedidos por WhatsApp en Santa Cruz.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FEF6D7",
+  "theme_color": "#DF2F38",
+  "lang": "es-BO",
+  "icons": [
+    { "src": "/assets/brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/assets/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
