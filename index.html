@@ -52,89 +52,156 @@
 <body>
   <a class="skip" href="#main">Saltar al contenido</a>
 
+  <!-- ============ TICKER ============ -->
+  <div class="ticker" data-ticker-wrap>
+    <div class="ticker__track" data-ticker></div>
+  </div>
+
   <!-- ============ NAV ============ -->
   <header class="nav" data-nav>
     <div class="nav__inner wrap">
+      <button class="nav__burger" data-burger aria-label="Abrir menú" aria-expanded="false"><i><span></span><span></span><span></span></i><small>Menú</small></button>
       <a href="#top" class="nav__brand" aria-label="Zapi Piza, inicio">
         <img src="assets/img/logo.png" alt="" width="44" height="44" />
         <span>Zapi&nbsp;Piza</span>
       </a>
       <nav class="nav__links" aria-label="Principal">
-        <a href="#menu">Menú</a>
-        <a href="#promos">Promos</a>
-        <a href="#pedir">Pedir</a>
-        <a href="#sucursales">Sucursales</a>
-        <a href="#historia">Historia</a>
+        <div class="pillnav">
+          <a href="#ofertas">Promos</a>
+          <a href="#combos">Combos</a>
+          <a href="#menu">Pizzas</a>
+          <a href="#pedir">Pedir</a>
+          <a href="#sucursales">Sucursales</a>
+          <a href="#historia">Historia</a>
+          <button type="button" class="pillnav__ai" data-zapia-open>Zap-IA ✨</button>
+        </div>
       </nav>
-      <button class="btn btn--cream nav__cart" data-cart-open aria-label="Abrir pedido">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
-        <span>Pedido</span>
-        <b class="nav__count" data-cart-count>0</b>
-      </button>
-      <button class="nav__burger" data-burger aria-label="Menú" aria-expanded="false"><span></span><span></span></button>
+      <div class="nav__utils">
+        <a class="nav__open" href="#sucursales" data-nav-open><span class="dot"></span><span>Sucursales</span></a>
+        <a class="nav__start" href="#pedir">Empezar pedido</a>
+        <button type="button" class="nav__icon nav__help" data-zapia-open aria-label="Ayuda: preguntale a Zap-IA">
+          <i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4v.3"/><path d="M12 16.5h.01"/></svg></i>
+          <small>Ayuda</small>
+        </button>
+        <button type="button" class="nav__icon nav__cart" data-cart-open aria-label="Abrir pedido">
+          <i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><b class="nav__count" data-cart-count>0</b></i>
+          <small>Pedido</small>
+        </button>
+      </div>
     </div>
   </header>
 
   <main id="main">
-    <!-- ============ HERO ============ -->
-    <section class="hero" id="top">
-      <div class="hero__grain" aria-hidden="true"></div>
-      <div class="hero__glow" aria-hidden="true"></div>
-      <div class="wrap hero__stage">
-        <p class="hero__live" data-hero-live><span class="dot"></span> Santa Cruz · <b>9 sucursales</b></p>
+    <!-- ============ HERO: promo carousel ============ -->
+    <section class="hero" id="top" aria-roledescription="carrusel" aria-label="Promos destacadas" data-hero>
+      <h1 class="sr">Zapi Piza: pizzas familiares para compartir en Santa Cruz de la Sierra</h1>
+      <div class="hero__slides" data-slides>
 
-        <h1 class="hero__title">
-          <span class="line"><span>Hecha para</span></span>
-          <span class="line"><span class="mustard">compartir.</span></span>
-        </h1>
-
-        <div class="hero__left">
-          <p class="hero__lede">Seis años, nueve sucursales y pizzas familiares de 35&nbsp;cm pensadas para la mesa grande. Pedila por WhatsApp a tu Zapi más cercana.</p>
-          <div class="hero__ctas">
-            <a href="#pedir" class="btn btn--mustard btn--lg">Pedir por WhatsApp <span aria-hidden="true">→</span></a>
-            <a href="#menu" class="btn btn--ghost btn--lg">Ver el menú</a>
+        <article class="slide slide--red is-active" data-slide data-tone="dark" aria-roledescription="diapositiva" aria-label="1 de 3: Combo Zuper Peppe">
+          <div class="slide__bg" aria-hidden="true"></div>
+          <div class="wrap slide__grid">
+            <div class="slide__copy">
+              <p class="slide__kicker">Combos aniversario · soda incluida</p>
+              <h2 class="slide__title">Combo<br/><span>Zuper Peppe</span></h2>
+              <div class="slide__price"><small>Bs</small><b>76</b><span>Zapi Familiar Zuper Peppe<br/>+ Coca-Cola 2 litros</span></div>
+              <div class="slide__ctas">
+                <button type="button" class="btn btn--mustard btn--lg" data-add="combo-peppe">Agregar al pedido</button>
+                <a class="btn btn--ghost btn--lg" href="#combos">Ver los 4 combos</a>
+              </div>
+            </div>
+            <figure class="slide__media">
+              <img src="assets/hero/slide-peppe.webp" alt="Pizza familiar Zuper Peppe con extra pepperoni y una Coca-Cola de 2 litros" width="1000" height="750" fetchpriority="high" />
+              <div class="hero__sticker" aria-hidden="true">
+                <svg viewBox="0 0 200 200"><defs><path id="circ" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"/></defs><text><textPath href="#circ" textLength="486" lengthAdjust="spacing">6 AÑOS DE SABOR · ZAPI PIZA · 6 AÑOS DE SABOR · ZAPI PIZA ·</textPath></text></svg>
+                <b>6</b>
+              </div>
+            </figure>
           </div>
-        </div>
+        </article>
 
-        <div class="fan" data-fan>
-          <figure class="fan__card fan__card--l">
-            <div class="fan__inner">
-              <video src="assets/hero/seleccionado.mp4" poster="assets/hero/seleccionado.webp" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
-              <figcaption><b>Recién cortada</b><span>🔥</span></figcaption>
+        <article class="slide slide--cream" data-slide data-tone="light" aria-roledescription="diapositiva" aria-label="2 de 3: Yapa del mes" inert>
+          <div class="slide__bg" aria-hidden="true"></div>
+          <div class="wrap slide__grid">
+            <div class="slide__copy">
+              <p class="slide__kicker">La Yapa del mes · todo noviembre</p>
+              <h2 class="slide__title">Jamón y<br/><span>Pimentón</span></h2>
+              <div class="slide__price"><small>Bs</small><b>46</b><span><s>Bs 58</s><br/>Pizza Familiar de 35 cm</span></div>
+              <div class="slide__ctas">
+                <button type="button" class="btn btn--red btn--lg" data-add="yapa-jyp">Agregar al pedido</button>
+                <a class="btn btn--outline btn--lg" href="#yapa">Ver la Yapa</a>
+              </div>
             </div>
-          </figure>
-          <figure class="fan__card fan__card--r">
-            <div class="fan__inner">
-              <video src="assets/hero/yapa.mp4" poster="assets/hero/yapa.webp" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
-              <figcaption><b>Yapa del mes</b><span>Bs 46</span></figcaption>
-            </div>
-          </figure>
-          <figure class="fan__card fan__card--c">
-            <div class="fan__inner">
-              <video src="assets/hero/doriloco.mp4" poster="assets/hero/doriloco.webp" autoplay muted loop playsinline preload="auto" aria-label="La Doriloco: una porción recién servida"></video>
-              <figcaption><b>Doriloco</b><span>Bs 68</span></figcaption>
-            </div>
-          </figure>
-          <div class="hero__sticker" aria-hidden="true">
-            <svg viewBox="0 0 200 200"><defs><path id="circ" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"/></defs><text><textPath href="#circ" textLength="486" lengthAdjust="spacing">ZAPI DAY · 6 AÑOS DE SABOR · ZAPI DAY · 6 AÑOS DE SABOR ·</textPath></text></svg>
-            <b>6</b>
+            <figure class="slide__media">
+              <img src="assets/hero/slide-yapa.webp" alt="Pizza familiar de jamón y pimentón con una porción levantada y el queso estirándose" width="860" height="508" loading="lazy" />
+            </figure>
           </div>
-        </div>
+        </article>
 
-        <aside class="hero__right">
-          <dl class="stats" data-stats></dl>
-        </aside>
+        <article class="slide slide--wine" data-slide data-tone="dark" aria-roledescription="diapositiva" aria-label="3 de 3: La Doriloco" inert>
+          <div class="slide__bg" aria-hidden="true"><img src="assets/hero/doriloco-hd.webp" alt="" loading="lazy" /></div>
+          <div class="wrap slide__grid">
+            <div class="slide__copy">
+              <p class="slide__kicker">Nueva · Zapi Premium</p>
+              <h2 class="slide__title">La<br/><span>Doriloco</span></h2>
+              <div class="slide__price"><small>Bs</small><b>68</b><span>Carne molida, cheddar, crema agria, doritos y pico de gallo</span></div>
+              <div class="slide__ctas">
+                <button type="button" class="btn btn--mustard btn--lg" data-add="doriloco">Agregar al pedido</button>
+                <a class="btn btn--ghost btn--lg" href="#menu">Ver el menú</a>
+              </div>
+            </div>
+            <figure class="slide__media slide__media--video">
+              <div class="slide__reel">
+                <video src="assets/hero/doriloco-hd.mp4" poster="assets/hero/doriloco-hd.webp" muted loop playsinline preload="none" aria-label="La Doriloco recién salida del horno"></video>
+              </div>
+              <div class="slide__blob" aria-hidden="true"><small>Probá la</small><b>Doriloco</b><small>¡nueva!</small></div>
+            </figure>
+          </div>
+        </article>
       </div>
+
+      <div class="wrap hero__foot">
+        <div class="hero__dots" role="tablist" aria-label="Elegí una promo" data-dots>
+          <button type="button" role="tab" aria-selected="true" aria-label="Combo Zuper Peppe"></button>
+          <button type="button" role="tab" aria-selected="false" aria-label="Yapa del mes"></button>
+          <button type="button" role="tab" aria-selected="false" aria-label="La Doriloco"></button>
+        </div>
+        <p class="hero__terms">Válido durante noviembre · en el local o por WhatsApp</p>
+      </div>
+
+      <aside class="qrcard" data-qr aria-label="Escaneá para escribirnos por WhatsApp">
+        <button type="button" class="qrcard__x" data-qr-close aria-label="Cerrar">✕</button>
+        <img src="assets/brand/qr-whatsapp.svg" alt="Código QR al WhatsApp de Zapi" width="92" height="92" />
+        <b>¡Pedí por WhatsApp!</b>
+      </aside>
+
       <div class="checker" aria-hidden="true"></div>
+
+      <form class="orderbox" data-orderbox>
+        <p class="orderbox__title">¿Dónde querés tu pedido?</p>
+        <div class="orderbox__toggle" role="radiogroup" aria-label="Tipo de pedido">
+          <label><input type="radio" name="ob" value="delivery" checked /><span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="17" r="2.5"/><circle cx="18" cy="17" r="2.5"/><path d="M8.5 17h7M15 6h2l3.5 8.5M12 9H7.5L5 14.5"/><path d="M12 9l2.5 5.5"/></svg>A domicilio</span></label>
+          <label><input type="radio" name="ob" value="pickup" /><span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v10h16V10"/><path d="M3 10l2-6h14l2 6Z"/><path d="M10 20v-5h4v5"/></svg>A recoger</span></label>
+        </div>
+        <div class="orderbox__row">
+          <select name="obBranch" data-ob-branch aria-label="Sucursal"></select>
+          <button type="submit" class="orderbox__go">Empezar <span aria-hidden="true">→</span></button>
+        </div>
+        <p class="orderbox__status" data-hero-live></p>
+      </form>
     </section>
 
-    <!-- ============ MARQUEE ============ -->
-    <div class="marquee" aria-hidden="true">
-      <div class="marquee__track">
-        <span>Yapa del mes</span><i>✦</i><span>Combos aniversario</span><i>✦</i><span>Lunes de Premium</span><i>✦</i><span>Martes de Eco</span><i>✦</i><span>Viernes de Palé</span><i>✦</i><span>Zapi lovers</span><i>✦</i>
-        <span>Yapa del mes</span><i>✦</i><span>Combos aniversario</span><i>✦</i><span>Lunes de Premium</span><i>✦</i><span>Martes de Eco</span><i>✦</i><span>Viernes de Palé</span><i>✦</i><span>Zapi lovers</span><i>✦</i>
+    <!-- ============ OFFERS ROW ============ -->
+    <section class="offers" id="ofertas">
+      <div class="wrap">
+        <h2 class="offers__title reveal">Descubrí nuestras promos</h2>
       </div>
-    </div>
+      <div class="offers__wrap">
+        <button type="button" class="offers__arrow offers__arrow--prev" data-offers-prev aria-label="Promos anteriores">←</button>
+        <div class="offers__rail" data-offers></div>
+        <button type="button" class="offers__arrow offers__arrow--next" data-offers-next aria-label="Más promos">→</button>
+      </div>
+      <p class="offers__all"><a href="#promos">Ver todas las promos <span aria-hidden="true">↗</span></a></p>
+    </section>
 
     <!-- ============ WEEKLY PROMOS ============ -->
     <section class="section section--cream" id="promos">
@@ -149,7 +216,7 @@
     </section>
 
     <!-- ============ YAPA SPOTLIGHT ============ -->
-    <section class="yapa">
+    <section class="yapa" id="yapa">
       <div class="wrap yapa__grid">
         <div class="yapa__img reveal">
           <img src="assets/img/yapa.webp" alt="Pizza familiar de jamón y pimentón, Yapa del mes a Bs 46" loading="lazy" width="900" height="1112" />
@@ -363,7 +430,7 @@
     </section>
 
     <!-- ============ PALÉ ============ -->
-    <section class="pale">
+    <section class="pale" id="pale">
       <div class="wrap pale__grid">
         <div class="pale__copy">
           <p class="eyebrow eyebrow--cream reveal">Zapi + Palé = la combinación perfecta</p>
@@ -411,7 +478,7 @@
     </section>
 
     <!-- ============ JOBS ============ -->
-    <section class="jobs">
+    <section class="jobs" id="trabajo">
       <div class="wrap jobs__inner reveal">
         <div>
           <p class="eyebrow eyebrow--red">Trabajá con nosotros</p>
@@ -425,24 +492,46 @@
   <!-- ============ FOOTER ============ -->
   <footer class="footer">
     <div class="checker checker--top" aria-hidden="true"></div>
-    <div class="wrap footer__grid">
-      <div class="footer__brand">
-        <img src="assets/img/logo.png" alt="Zapi Piza" width="88" height="88" loading="lazy" />
-        <p class="footer__big">¡Nos vemos<br/>en Zapi!</p>
-      </div>
-      <div>
-        <h4>Visitanos</h4>
-        <p>Lunes a domingo<br/>Hasta las 23:30</p>
-        <p>Santa Cruz de la Sierra, Bolivia</p>
-      </div>
-      <div>
-        <h4>Seguinos</h4>
-        <p><a href="https://www.instagram.com/zapi.piza/" target="_blank" rel="noopener">Instagram @zapi.piza</a></p>
-        <p><a href="#sucursales">Sucursales</a></p>
-        <p><a href="#menu">Combos y menú</a></p>
+    <div class="footer__top">
+      <div class="wrap">
+        <p class="footer__big">¡Nos vemos en Zapi!</p>
+        <button type="button" class="footer__help" data-zapia-open>Ayuda <span aria-hidden="true">›</span></button>
+        <nav class="footer__groups" aria-label="Enlaces del sitio" data-fgroups>
+          <details>
+            <summary>Productos</summary>
+            <ul><li><a href="#menu">Menú completo</a></li><li><a href="#combos">Combos Zapi + Soda</a></li><li><a href="#yapa">Yapa del mes</a></li><li><a href="#pale">Paletas Palé</a></li></ul>
+          </details>
+          <details>
+            <summary>Promos</summary>
+            <ul><li><a href="#promos">La semana Zapi</a></li><li><a href="#ofertas">Todas las promos</a></li><li><a href="#combos">Combos aniversario</a></li></ul>
+          </details>
+          <details>
+            <summary>Pedidos</summary>
+            <ul><li><a href="#pedir">Pedir por WhatsApp</a></li><li><a href="#sucursales">Delivery con Yango</a></li><li><a href="tel:+59176044549">Call Center 7604 4549</a></li></ul>
+          </details>
+          <details>
+            <summary>Sucursales</summary>
+            <ul data-fbranches></ul>
+          </details>
+          <details>
+            <summary>Zapi</summary>
+            <ul><li><a href="#historia">Nuestra historia</a></li><li><a href="#trabajo">Trabajá con nosotros</a></li><li><a href="https://www.instagram.com/zapi.piza/" target="_blank" rel="noopener">Instagram @zapi.piza</a></li></ul>
+          </details>
+        </nav>
+        <p class="footer__legal">Lunes a domingo, hasta las 23:30 · Santa Cruz de la Sierra, Bolivia<br/>© <span data-year></span> Zapi Piza. Hecho con hambre en Santa Cruz.</p>
       </div>
     </div>
-    <p class="wrap footer__legal">© <span data-year></span> Zapi Piza. Hecho con hambre en Santa Cruz.</p>
+    <div class="footer__bar">
+      <div class="wrap footer__barin">
+        <a class="footer__phone" href="tel:+59176044549">Bolivia · Call Center 7604 4549</a>
+        <a class="footer__logo" href="#top" aria-label="Zapi Piza, volver arriba"><img src="assets/img/logo.png" alt="" width="40" height="40" loading="lazy" /><span>Zapi Piza</span></a>
+        <div class="footer__social">
+          <a href="https://www.instagram.com/zapi.piza/" target="_blank" rel="noopener" aria-label="Instagram"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg></a>
+          <a href="https://wa.me/59176044549" target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Z"/></svg></a>
+          <a href="tel:+59176044549" aria-label="Llamar al Call Center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></svg></a>
+        </div>
+      </div>
+    </div>
   </footer>
 
   <!-- ============ CART DRAWER ============ -->

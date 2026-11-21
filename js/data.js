@@ -15,12 +15,6 @@
       currency: "Bs",
     },
 
-    stats: [
-      { value: 6, suffix: " años", label: "de sabor cruceño" },
-      { value: 9, suffix: "", label: "sucursales en Santa Cruz" },
-      { value: 5.9, suffix: "K", label: "Zapi lovers en Instagram", decimals: 1 },
-    ],
-
     /* ---------------- MENU (printed menu) ---------------- */
     base: "Salsa de tomate de la casa y queso muzzarella",
     sizes: { familiar: "Familiar · 35 cm", jr: "Jr. · 20 cm" },
@@ -126,6 +120,15 @@
 
     // Yapa del mes: Jamón y Pimentón familiar at Bs 46 (regular Bs 58), all of November.
     yapa: { id: "yapa-jyp", name: "Jamón y Pimentón · Yapa del mes", price: 46, regular: 58 },
+
+    // "Descubrí nuestras promos" row: current promo posts (expired ones, like Zapi Day, stay out).
+    offers: [
+      { img: "assets/img/combos.webp", href: "#combos", alt: "Combos Zapi + Soda, todo noviembre" },
+      { img: "assets/img/yapa.webp", href: "#yapa", alt: "Yapa del mes: Jamón y Pimentón a Bs 46" },
+      { img: "assets/img/pale.webp", href: "#pale", alt: "Viernes de Palé: paletas a Bs 6" },
+      { img: "assets/img/noviembre.webp", href: "#promos", alt: "Promos de noviembre: la semana Zapi" },
+      { img: "assets/img/amor.webp", href: "#menu", alt: "¿Qué es el amor? La 4 Quesos" },
+    ],
 
     featured: [
       { ref: "yapa-jyp", name: "Jamón y Pimentón", tag: "Yapa del mes", img: "assets/img/yapa.webp",

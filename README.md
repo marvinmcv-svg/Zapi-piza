@@ -18,6 +18,14 @@ assets/video      Instagram reels (540p H.264, muted, faststart) + webp posters
 ```
 
 ## Features
+- **Top of page (UX inspired by big delivery chains):** a scrolling promo ticker; a header with a floating pill menu; and a full-width **promo carousel**:
+  - Slides: Combo Zuper Peppe, Yapa del mes, La Doriloco.
+  - Behaviour: autoplay, dots, swipe, and it pauses on hover or focus.
+  - **"¿Dónde querés tu pedido?" box:** pick delivery or pick-up and a branch, and it jumps into the WhatsApp funnel already filled in.
+  - A dismissible WhatsApp QR card.
+  - Slide prices and photos are written in `index.html`. Keep them in sync with `js/data.js` when promos change.
+- **"Descubrí nuestras promos" row** of current promo posts (`offers` in `js/data.js`).
+- **Footer:** dark band with an "Ayuda" button (opens Zap-IA) and dropdown link groups, plus a red bar with the call centre, logo and socials.
 - **Brand palette sampled from the posts**: red `#DF2F38`, deep red `#A10715`, cream `#FEF6D7`, mustard `#F7C344`, and Palé pink `#EC4E9B`. The checkered tablecloth edge appears throughout.
 - **Weekly promos**: the current day in Bolivia time is highlighted automatically.
 - **Cart + WhatsApp checkout**: the cart is saved in localStorage. Checkout builds the order message (items, total, branch, pick-up or delivery, address and notes).

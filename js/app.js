@@ -45,32 +45,36 @@
   /* =========================================================
      Static renders
      ========================================================= */
-  $("[data-stats]").innerHTML = Z.stats.map((s) =>
-    `<div><dt data-count="${s.value}" data-dec="${s.decimals || 0}" data-suffix="${esc(s.suffix)}">0${esc(s.suffix)}</dt><dd>${esc(s.label)}</dd></div>`).join("");
-  function countUp(el) {
-    const end = +el.dataset.count, dec = +el.dataset.dec, suf = el.dataset.suffix;
-    if (reduceMotion) { el.textContent = end.toFixed(dec) + suf; return; }
-    const t0 = performance.now(), dur = 1400;
-    const step = (t) => {
-      const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
-      el.textContent = (end * e).toFixed(dec) + suf;
-      if (p < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
+  /* ---------- promo ticker ---------- */
+  const slice = '<span class="ticker__sep" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 6.5C9 3 15 3 21 6.5L12 21Z"/><path d="M4.6 9.3c4.8-2.3 10-2.3 14.8 0"/><circle cx="10" cy="11.5" r="1.1"/><circle cx="14.2" cy="14" r="1.1"/><circle cx="11.6" cy="16.6" r=".9"/></svg></span>';
+  function renderTicker() {
+    const day = nowInBolivia().day;
+    const today = Z.weekly.find((w) => w.day === day);
+    const cheapest = Math.min(...Z.combos.map((c) => c.price));
+    const items = [
+      `Combos aniversario con soda incluida <b>desde ${fmt(cheapest)}</b>`,
+      `La Yapa del mes: <b>${esc(Z.yapa.name.split(" · ")[0])} a ${fmt(Z.yapa.price)}</b>`,
+      today ? `Hoy es <b>${esc(today.name)} ${esc(today.title)}</b>: ${esc(today.desc)} a ${today.from ? "desde " : ""}${fmt(today.price)}`
+            : `Probá la nueva <b>Doriloco</b> en tu Zapi más cercana`,
+      `Pedí por WhatsApp a <b>tu sucursal</b> o encontranos en Yango`,
+    ];
+    const run = items.map((t) => `<span class="ticker__item">${t}</span>${slice}`).join("");
+    $("[data-ticker]").innerHTML = run + `<span style="display:contents" aria-hidden="true">${run}</span>`;
   }
+  renderTicker();
 
-  const now = nowInBolivia();
-  $("[data-week]").innerHTML = Z.weekly.map((d, i) => {
-    const today = d.day === now.day;
-    return `<article class="day reveal ${today ? "is-today" : ""} ${d.pale ? "day--pale" : ""}" style="transition-delay:${i * 70}ms">
-      ${today ? '<span class="day__today">Hoy</span>' : ""}
-      <span class="day__name">${esc(d.name)}</span>
-      <h3 class="day__title">${esc(d.title)}</h3>
-      <p class="day__desc">${esc(d.desc)}</p>
-      <div class="day__price">${d.from ? "<em>desde</em>" : ""}<small>Bs</small>${esc(d.price)}</div>
-      <span class="day__save">${esc(d.save)}</span>
-    </article>`;
-  }).join("");
+  /* ---------- offers row ---------- */
+  const offersEl = $("[data-offers]");
+  offersEl.innerHTML = Z.offers.map((o) => `<a class="offer" href="${o.href}"><img src="${o.img}" alt="${esc(o.alt)}" loading="lazy" width="900" height="1125" /></a>`).join("");
+  const offerStep = () => (offersEl.querySelector(".offer").offsetWidth + 20) * (innerWidth > 1080 ? 2 : 1);
+  const syncOfferArrows = () => {
+    $("[data-offers-prev]").disabled = offersEl.scrollLeft < 8;
+    $("[data-offers-next]").disabled = offersEl.scrollLeft + offersEl.clientWidth > offersEl.scrollWidth - 8;
+  };
+  $("[data-offers-prev]").addEventListener("click", () => offersEl.scrollBy({ left: -offerStep(), behavior: "smooth" }));
+  $("[data-offers-next]").addEventListener("click", () => offersEl.scrollBy({ left: offerStep(), behavior: "smooth" }));
+  offersEl.addEventListener("scroll", syncOfferArrows, { passive: true });
+  addEventListener("resize", syncOfferArrows); syncOfferArrows();
 
   /* ---------- carta ---------- */
   const tabsEl = $("[data-tabs]"), cartaEl = $("[data-carta]");
@@ -172,6 +176,7 @@
 
   /* ---------- branches ---------- */
   const branchSel = $("[data-branch-select]");
+  const obForm = $("[data-orderbox]"), obBranch = $("[data-ob-branch]");
   const CALL_CENTER = "Call Center";
   const fmtPhone = (n) => n.replace(/^591/, "").replace(/(\d{4})(\d{4})/, "$1 $2");
   const branchByName = (name) => Z.branches.find((b) => b.name === name);
@@ -198,6 +203,12 @@
       return `<option value="${esc(b.name)}">${esc(b.name)} · ${s.text}</option>`;
     }).join("") + `<option value="${CALL_CENTER}" data-cc>Call Center · consultas generales</option>`;
     branchSel.value = current;
+    const obCurrent = obBranch.value;
+    obBranch.innerHTML = `<option value="">Elegí tu sucursal</option>` + Z.branches.map((b) =>
+      `<option value="${esc(b.name)}">${esc(b.name)} · ${branchStatus(b, n).text}</option>`).join("");
+    obBranch.value = obCurrent;
+    $("[data-fbranches]").innerHTML = Z.branches.map((b) =>
+      `<li><a href="#sucursales">${esc(b.name)} · ${b.open}–${b.close}</a></li>`).join("");
   }
   renderBranches();
   setInterval(renderBranches, 60_000);
@@ -212,7 +223,8 @@
      Nav, reveal, video
      ========================================================= */
   const nav = $("[data-nav]");
-  const onScroll = () => nav.classList.toggle("is-solid", scrollY > 40);
+  const tickH = () => $("[data-ticker-wrap]").offsetHeight;
+  const onScroll = () => nav.classList.toggle("is-solid", scrollY > tickH() + 10);
   addEventListener("scroll", onScroll, { passive: true }); onScroll();
   const burger = $("[data-burger]");
   burger.addEventListener("click", () => burger.setAttribute("aria-expanded", nav.classList.toggle("is-open")));
@@ -221,7 +233,6 @@
   const io = new IntersectionObserver((entries) => entries.forEach((e) => {
     if (!e.isIntersecting) return;
     e.target.classList.add("is-in");
-    if (e.target.matches("[data-stats]")) $$("[data-count]", e.target).forEach(countUp);
     io.unobserve(e.target);
   }), { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
   $$(".reveal").forEach((el) => io.observe(el));
@@ -232,33 +243,81 @@
   }), { threshold: 0.35 });
   $$("video[data-autoplay]").forEach((v) => vio.observe(v));
   /* ---------- hero: live status + pointer parallax ---------- */
-  const fanVideos = $$(".fan video");
-  if (reduceMotion) fanVideos.forEach((v) => { v.removeAttribute("autoplay"); v.pause(); });
   function renderHeroLive() {
     const n = nowInBolivia();
     const open = Z.branches.filter((b) => n.minutes >= toMin(b.open) && n.minutes < toMin(b.close)).length;
-    const promo = Z.weekly.find((w) => w.day === n.day);
     const firstOpen = Z.branches.map((b) => b.open).sort()[0];
     const lastClose = Z.branches.map((b) => b.close).sort().at(-1);
     const status = open
-      ? `<b>${open} de ${Z.branches.length}</b> sucursales abiertas`
+      ? `<b>${open} de ${Z.branches.length}</b> sucursales abiertas ahora`
       : n.minutes >= toMin(lastClose) ? `Volvemos mañana desde las <b>${firstOpen}</b>` : `Abrimos hoy desde las <b>${firstOpen}</b>`;
-    $("[data-hero-live]").innerHTML = `<span class="dot"></span><span>${status}${promo && open ? ` · Hoy: ${esc(promo.name)} ${esc(promo.title)}` : ""}</span>`;
+    $("[data-hero-live]").innerHTML = `<span class="dot${open ? "" : " dot--off"}"></span><span>${status}</span>`;
+    $("[data-nav-open] span:last-child").textContent = open ? `${open} de ${Z.branches.length} abiertas` : "Sucursales";
   }
   renderHeroLive();
-  setTimeout(() => $$(".hero [data-count]").forEach(countUp), reduceMotion ? 0 : 700);
   setInterval(renderHeroLive, 60_000);
-  const fan = $("[data-fan]");
-  if (!reduceMotion && matchMedia("(pointer: fine)").matches) {
-    let raf = 0;
-    $(".hero").addEventListener("pointermove", (e) => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        fan.style.setProperty("--mx", ((e.clientX / innerWidth) * 2 - 1).toFixed(3));
-        fan.style.setProperty("--my", ((e.clientY / innerHeight) * 2 - 1).toFixed(3));
-      });
+
+  /* ---------- hero: promo carousel ---------- */
+  const hero = $("[data-hero]"), slides = $$("[data-slide]"), dots = $$("[data-dots] button");
+  let cur = 0, timer = 0, paused = false;
+  function show(i) {
+    cur = (i + slides.length) % slides.length;
+    slides.forEach((sl, k) => {
+      const on = k === cur;
+      sl.classList.toggle("is-active", on);
+      sl.toggleAttribute("inert", !on);
+      const v = sl.querySelector("video");
+      if (v) { if (on && !reduceMotion) { v.preload = "auto"; v.play().catch(() => {}); } else v.pause(); }
     });
+    dots.forEach((d, k) => d.setAttribute("aria-selected", k === cur));
+    const light = slides[cur].dataset.tone === "light";
+    hero.classList.toggle("on-light", light);
+    nav.classList.toggle("on-light", light);
   }
+  const SLIDE_MS = 6500;
+  function schedule() {
+    clearTimeout(timer);
+    if (reduceMotion || paused || document.hidden) return;
+    timer = setTimeout(() => { show(cur + 1); schedule(); }, SLIDE_MS);
+  }
+  dots.forEach((d, k) => d.addEventListener("click", () => { show(k); schedule(); }));
+  const slidesEl = $("[data-slides]");
+  slidesEl.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") { paused = true; clearTimeout(timer); } });
+  slidesEl.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") { paused = false; schedule(); } });
+  hero.addEventListener("focusin", () => { paused = true; clearTimeout(timer); });
+  hero.addEventListener("focusout", () => { paused = false; schedule(); });
+  document.addEventListener("visibilitychange", schedule);
+  let x0 = null;
+  slidesEl.addEventListener("pointerdown", (e) => { x0 = e.clientX; });
+  slidesEl.addEventListener("pointerup", (e) => {
+    if (x0 === null) return;
+    const dx = e.clientX - x0; x0 = null;
+    if (Math.abs(dx) > 50) { show(cur + (dx < 0 ? 1 : -1)); schedule(); }
+  });
+  hero.addEventListener("keydown", (e) => {
+    if (!e.target.closest("[data-dots]")) return;
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+      show(cur + (e.key === "ArrowRight" ? 1 : -1)); dots[cur].focus();
+    }
+  });
+  // pause the carousel's video when the hero scrolls away
+  new IntersectionObserver(([e]) => {
+    const v = slides[cur].querySelector("video");
+    if (v) { if (e.isIntersecting && !reduceMotion) v.play().catch(() => {}); else v.pause(); }
+  }, { threshold: 0.2 }).observe(hero);
+  show(0); schedule();
+
+  /* ---------- WhatsApp QR card ---------- */
+  const qr = $("[data-qr]");
+  if (sessionStorage.getItem("zapi.qr.closed")) qr.hidden = true;
+  $("[data-qr-close]").addEventListener("click", () => { qr.hidden = true; sessionStorage.setItem("zapi.qr.closed", "1"); });
+
+  /* ---------- footer link groups: one open at a time ---------- */
+  const fgroups = $$("[data-fgroups] details");
+  fgroups.forEach((d) => d.addEventListener("toggle", () => { if (d.open) fgroups.forEach((o) => { if (o !== d) o.open = false; }); }));
+  document.addEventListener("click", (e) => {
+    if (innerWidth > 860 && !e.target.closest("[data-fgroups]")) fgroups.forEach((d) => (d.open = false));
+  });
 
   const toastEl = $("[data-toast]");
   let toastT;
@@ -486,6 +545,14 @@
     window.open(`https://wa.me/${to.number}?text=${text}`, "_blank", "noopener");
     toast(`¡Listo! Terminá de enviarlo a ${to.label} en WhatsApp 📲`);
   });
+  obForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    F.intent = obForm.elements.ob.value;
+    form.querySelector(`input[name="intent"][value="${F.intent}"]`).checked = true;
+    if (obBranch.value) branchSel.value = obBranch.value;
+    go(2);
+    $("#pedir").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+  });
   function gotoFunnel() {
     closeCart(false);
     if (!isOrder()) { F.intent = "delivery"; const r = form.querySelector('input[value="delivery"]'); r.checked = true; }
@@ -613,7 +680,10 @@
   /* ---------- mobile action bar: visible after the hero, hidden over the funnel ---------- */
   const mbar = $("[data-mbar]");
   const vis = { hero: true, funnel: false, footer: false };
-  const syncBar = () => mbar.classList.toggle("is-on", !vis.hero && !vis.funnel && !vis.footer);
+  const syncBar = () => {
+    mbar.classList.toggle("is-on", !vis.hero && !vis.funnel && !vis.footer);
+    zbtn.classList.toggle("is-away", vis.footer); // the footer has its own "Ayuda" button
+  };
   const barIO = new IntersectionObserver((entries) => {
     entries.forEach((e) => {
       if (e.target.matches(".hero")) vis.hero = e.isIntersecting;
