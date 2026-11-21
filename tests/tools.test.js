@@ -367,3 +367,22 @@ test("tool schemas are valid for both providers", () => {
   const names = new Set(T.TOOLS.map((t) => t.name));
   assert.equal(names.size, T.TOOLS.length, "tool names are unique");
 });
+
+test("deals: 'almost a combo' only suggests adding the drink, with the exact cart total", () => {
+  const { run } = session({ cart: { chori: 1, "soda-2l": 1 } });
+  const hints = run("get_deals").para_tu_carrito;
+  assert.equal(hints.length, 1);
+  assert.equal(hints[0].tipo, "casi_combo");
+  assert.equal(hints[0].combo_id, "combo-chori");
+  assert.equal(hints[0].total_si_acepta, `Bs ${C["soda-2l"].price + Z.combos.find((c) => c.id === "combo-chori").price}`);
+  const drinkOnly = session({ cart: { "soda-2l": 1 } }).run("get_deals").para_tu_carrito;
+  assert.equal(drinkOnly.filter((h) => h.tipo === "casi_combo").length, 0, "a lone soda must not suggest buying a pizza");
+});
+
+test("deals: swapping an almost-complete combo adds the drink and keeps the rest of the cart", () => {
+  const { run, st } = session({ cart: { chori: 1, "soda-2l": 1 } });
+  run("cart_swap_to_combo", { combo_id: "combo-chori" });
+  assert.deepEqual(st.cart, { "soda-2l": 1, "combo-chori": 1 });
+  const refused = session({ cart: { "soda-2l": 1 } }).run("cart_swap_to_combo", { combo_id: "combo-peppe" });
+  assert.ok(refused.error);
+});

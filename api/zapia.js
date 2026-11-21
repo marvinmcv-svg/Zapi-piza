@@ -149,9 +149,15 @@ module.exports = async function handler(req, res) {
   res.writeHead(200, { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store", "X-Accel-Buffering": "no" });
   const send = (obj) => res.write(JSON.stringify(obj) + "\n");
   // Text from a later round starts a new paragraph, so "Un segundito…" + the answer don't run together.
-  let wrote = false, gap = false;
+  // Only after a finished sentence, so "¡" + tool call + "Listo!" stays "¡Listo!".
+  let wrote = false, gap = false, last = "";
   const emit = {
-    text: (t) => { if (!t) return; if (gap && wrote) { send({ type: "text", text: "\n\n" }); gap = false; } wrote = true; send({ type: "text", text: t }); },
+    text: (t) => {
+      if (!t) return;
+      if (gap && wrote && /[.!?…:)\]]\s*$/.test(last)) send({ type: "text", text: "\n\n" });
+      gap = false; wrote = true; last = t;
+      send({ type: "text", text: t });
+    },
     round: () => { gap = true; },
   };
   const exec = (name, args) => {

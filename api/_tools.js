@@ -164,12 +164,16 @@ function dealHints(cart, day) {
     const have = c.parts.filter((id) => cart[id] > 0);
     const value = comboValue(c);
     if (have.length === c.parts.length) {
-      hints.push({ tipo: "cambiar_a_combo", combo_id: c.id, combo: c.name, mensaje: `Ya tenés todo lo del ${c.name}: pasalo a combo y pagás ${bs(c.price)} en vez de ${bs(value)} (ahorrás ${bs(value - c.price)}).`, ahorro: value - c.price });
-    } else if (have.length && have.length === c.parts.length - 1) {
+      const after = cartTotal(cart) - value + c.price;
+      hints.push({ tipo: "cambiar_a_combo", combo_id: c.id, combo: c.name, total_si_acepta: bs(after),
+        mensaje: `Ya tenés todo lo del ${c.name}: pasalo a combo y pagás ${bs(c.price)} en vez de ${bs(value)} (ahorrás ${bs(value - c.price)}). Total del carrito: ${bs(after)}.`, ahorro: value - c.price });
+    } else if (have.length && have.length === c.parts.length - 1 && CATALOG[c.parts.find((id) => !cart[id])].kind === "drink") {
+      // only "add the drink": never push an extra pizza on someone who just has a soda
       const missing = c.parts.find((id) => !cart[id]);
       const paidNow = have.reduce((s, id) => s + CATALOG[id].price, 0);
-      hints.push({ tipo: "casi_combo", combo_id: c.id, combo: c.name, falta: CATALOG[missing].name,
-        mensaje: `Por ${bs(c.price - paidNow)} más te llevás también ${CATALOG[missing].name}: es el ${c.name} a ${bs(c.price)} (por separado ${bs(value)}, ahorrás ${bs(value - c.price)}).`, ahorro: value - c.price });
+      const after = cartTotal(cart) - paidNow + c.price; // the parts you have become the combo; the rest of the cart stays
+      hints.push({ tipo: "casi_combo", combo_id: c.id, combo: c.name, falta: CATALOG[missing].name, total_si_acepta: bs(after),
+        mensaje: `Por ${bs(c.price - paidNow)} más te llevás también ${CATALOG[missing].name}: es el ${c.name} a ${bs(c.price)} (por separado ${bs(value)}, ahorrás ${bs(value - c.price)}). Total del carrito si aceptás: ${bs(after)}.`, ahorro: value - c.price });
     }
   }
   const p = todayPromo(day);
@@ -376,9 +380,12 @@ function runTool(name, args, st, events, now = new Date()) {
     case "cart_swap_to_combo": {
       const c = Z.combos.find((x) => x.id === args.combo_id);
       if (!c) return { error: "Combo desconocido." };
-      if (!c.parts.every((id) => st.cart[id] > 0)) return { error: `El carrito no tiene todo lo del ${c.name}. Usá get_deals.` };
+      // all parts in the cart, or all but one (the combo then adds the missing item)
+      const have = c.parts.filter((id) => st.cart[id] > 0);
+      const lacking = c.parts.filter((id) => !(st.cart[id] > 0));
+      if (lacking.length > 1 || (lacking.length === 1 && CATALOG[lacking[0]].kind !== "drink")) return { error: `El carrito no tiene las pizzas del ${c.name}. Usá get_deals.` };
       const before = { ...st.cart };
-      c.parts.forEach((id) => { if (--st.cart[id] <= 0) delete st.cart[id]; });
+      have.forEach((id) => { if (--st.cart[id] <= 0) delete st.cart[id]; });
       st.cart[c.id] = (st.cart[c.id] || 0) + 1;
       return { ok: true, ahorro: bs(comboValue(c) - c.price), carrito: cartChanged(before) };
     }
