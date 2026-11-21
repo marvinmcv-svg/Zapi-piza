@@ -498,6 +498,7 @@ function runTool(name, args, st, events, now = new Date()) {
       const h = st.history[0];
       if (!h) return { pedido: null, nota: "No hay pedidos de este dispositivo. Si pidió por otro medio, que consulte a su sucursal." };
       const b = findBranch(h.branch);
+      if (b) events.push({ type: "handoff", url: `https://wa.me/${b.whatsapp}?text=${encodeURIComponent(`¡Hola! Quería saber el estado de mi pedido ${h.id} 🍕`)}`, to: `Zapi ${b.name}` });
       return { pedido: h.id, enviado: h.at, sucursal: h.branch, total: bs(cartTotal(h.cart)),
         estado: "El seguimiento (preparación y envío) lo confirma la sucursal por WhatsApp.", whatsapp_sucursal: b ? fmtPhone(b.whatsapp) : null,
         link: b ? `https://wa.me/${b.whatsapp}?text=${encodeURIComponent(`¡Hola! Quería saber el estado de mi pedido ${h.id} 🍕`)}` : null };

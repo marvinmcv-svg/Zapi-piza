@@ -58,7 +58,7 @@ function pickProvider() {
 function isYes(text) {
   const t = String(text).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
   if (/\b(no|pero|cambi\w*|quit\w*|agreg\w*|espera|mejor)\b/.test(t)) return false;
-  return /^(si+|sip|claro|dale|de una|confirm\w*|ok(ay)?|listo|yes|yep|perfecto|correcto|esta bien|va|vamos)\b/.test(t) && t.length <= 60;
+  return /^(si+|sip|claro|dale|de una|confirm\w*|ok(ay)?|listo|yes|yep|perfecto|correcto|esta bien|va|vamos|bueno|manda\w*|hacelo|envia\w*)\b/.test(t) && t.length <= 60;
 }
 
 const toolResult = (r) => JSON.stringify(r).slice(0, 6000);
@@ -167,9 +167,15 @@ module.exports = async function handler(req, res) {
     },
     round: () => { gap = true; },
   };
+  // place_order is only valid for a read-back shown in an EARLIER turn, answered with a yes in THIS turn.
+  const tokenAtStart = state.stage === "awaiting_confirmation" ? state.token : null;
+  const saidYes = isYes(messages[messages.length - 1].content);
   const exec = (name, args) => {
     const events = [];
     let result;
+    if (name === "place_order" && !(tokenAtStart && saidYes && state.token === tokenAtStart)) {
+      return { error: "Todavía no: mostrá el resumen y esperá que el cliente responda 'sí' en su próximo mensaje. El pedido se confirma solo con su sí." };
+    }
     try { result = runTool(name, args, state, events); }
     catch (err) { console.error("zapia_tool_error", name, err && err.message); result = { error: "La herramienta falló." }; }
     events.filter((e) => e.type !== "state").forEach(send);
@@ -177,9 +183,7 @@ module.exports = async function handler(req, res) {
   };
 
   // A clear "yes" to the read-back places the order deterministically (the model only acknowledges it).
-  if (state.stage === "awaiting_confirmation" && state.token && isYes(messages[messages.length - 1].content)) {
-    exec("place_order", { token: state.token });
-  }
+  if (tokenAtStart && saidYes) exec("place_order", { token: tokenAtStart });
 
   try {
     if (provider === "nvidia") await loopNvidia({ messages, state, channel, emit, exec });
