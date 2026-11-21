@@ -221,7 +221,34 @@
     if (e.isIntersecting && !reduceMotion) { v.preload = "auto"; v.play().catch(() => {}); } else v.pause();
   }), { threshold: 0.35 });
   $$("video[data-autoplay]").forEach((v) => vio.observe(v));
-  if (reduceMotion) $(".hero__video").pause();
+  /* ---------- hero: live status + pointer parallax ---------- */
+  const fanVideos = $$(".fan video");
+  if (reduceMotion) fanVideos.forEach((v) => { v.removeAttribute("autoplay"); v.pause(); });
+  function renderHeroLive() {
+    const n = nowInBolivia();
+    const open = Z.branches.filter((b) => n.minutes >= toMin(b.open) && n.minutes < toMin(b.close)).length;
+    const promo = Z.weekly.find((w) => w.day === n.day);
+    const firstOpen = Z.branches.map((b) => b.open).sort()[0];
+    const lastClose = Z.branches.map((b) => b.close).sort().at(-1);
+    const status = open
+      ? `<b>${open} de ${Z.branches.length}</b> sucursales abiertas`
+      : n.minutes >= toMin(lastClose) ? `Volvemos mañana desde las <b>${firstOpen}</b>` : `Abrimos hoy desde las <b>${firstOpen}</b>`;
+    $("[data-hero-live]").innerHTML = `<span class="dot"></span><span>${status}${promo && open ? ` · Hoy: ${esc(promo.name)} ${esc(promo.title)}` : ""}</span>`;
+  }
+  renderHeroLive();
+  setTimeout(() => $$(".hero [data-count]").forEach(countUp), reduceMotion ? 0 : 700);
+  setInterval(renderHeroLive, 60_000);
+  const fan = $("[data-fan]");
+  if (!reduceMotion && matchMedia("(pointer: fine)").matches) {
+    let raf = 0;
+    $(".hero").addEventListener("pointermove", (e) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        fan.style.setProperty("--mx", ((e.clientX / innerWidth) * 2 - 1).toFixed(3));
+        fan.style.setProperty("--my", ((e.clientY / innerHeight) * 2 - 1).toFixed(3));
+      });
+    });
+  }
 
   const toastEl = $("[data-toast]");
   let toastT;

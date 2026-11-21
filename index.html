@@ -57,36 +57,51 @@
     <!-- ============ HERO ============ -->
     <section class="hero" id="top">
       <div class="hero__grain" aria-hidden="true"></div>
-      <div class="wrap hero__grid">
-        <div class="hero__copy">
-          <p class="eyebrow reveal"><span class="dot"></span> Santa Cruz, Bolivia · Desde 2020</p>
-          <h1 class="hero__title">
-            <span class="line"><span>Con hambre</span></span>
-            <span class="line"><span>uno dice</span></span>
-            <span class="line"><span class="mustard">cualquier</span></span>
-            <span class="line"><span>cosa.</span></span>
-          </h1>
-          <p class="hero__lede reveal">Pero con una buena pizza todo se soluciona. Seis años, nueve sucursales y un solo objetivo: darte <em>ese gustito</em> que te merecés.</p>
-          <div class="hero__ctas reveal">
-            <a href="#pedir" class="btn btn--mustard btn--lg">Pedir ahora <span aria-hidden="true">→</span></a>
-            <a href="#sucursales" class="btn btn--ghost btn--lg">Encontrá tu Zapi</a>
+      <div class="hero__glow" aria-hidden="true"></div>
+      <div class="wrap hero__stage">
+        <p class="hero__live" data-hero-live><span class="dot"></span> Santa Cruz · <b>9 sucursales</b></p>
+
+        <h1 class="hero__title">
+          <span class="line"><span>Hecha para</span></span>
+          <span class="line"><span class="mustard">compartir.</span></span>
+        </h1>
+
+        <div class="hero__left">
+          <p class="hero__lede">Seis años, nueve sucursales y pizzas familiares de 35&nbsp;cm pensadas para la mesa grande. Pedila por WhatsApp a tu Zapi más cercana.</p>
+          <div class="hero__ctas">
+            <a href="#pedir" class="btn btn--mustard btn--lg">Pedir por WhatsApp <span aria-hidden="true">→</span></a>
+            <a href="#menu" class="btn btn--ghost btn--lg">Ver el menú</a>
           </div>
-          <dl class="stats reveal" data-stats></dl>
         </div>
 
-        <div class="hero__media reveal">
-          <div class="hero__frame">
-            <video class="hero__video" src="assets/video/doriloco.mp4" poster="assets/video/doriloco.webp" autoplay muted loop playsinline preload="metadata" aria-label="La Doriloco en video"></video>
-            <div class="hero__badge">
-              <span>Nueva</span>
-              <strong>La Doriloco</strong>
+        <div class="fan" data-fan>
+          <figure class="fan__card fan__card--l">
+            <div class="fan__inner">
+              <video src="assets/hero/seleccionado.mp4" poster="assets/hero/seleccionado.webp" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
+              <figcaption><b>Recién cortada</b><span>🔥</span></figcaption>
             </div>
-          </div>
+          </figure>
+          <figure class="fan__card fan__card--r">
+            <div class="fan__inner">
+              <video src="assets/hero/yapa.mp4" poster="assets/hero/yapa.webp" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
+              <figcaption><b>Yapa del mes</b><span>Bs 46</span></figcaption>
+            </div>
+          </figure>
+          <figure class="fan__card fan__card--c">
+            <div class="fan__inner">
+              <video src="assets/hero/doriloco.mp4" poster="assets/hero/doriloco.webp" autoplay muted loop playsinline preload="auto" aria-label="La Doriloco: una porción recién servida"></video>
+              <figcaption><b>Doriloco</b><span>Bs 68</span></figcaption>
+            </div>
+          </figure>
           <div class="hero__sticker" aria-hidden="true">
             <svg viewBox="0 0 200 200"><defs><path id="circ" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"/></defs><text><textPath href="#circ" textLength="486" lengthAdjust="spacing">ZAPI DAY · 6 AÑOS DE SABOR · ZAPI DAY · 6 AÑOS DE SABOR ·</textPath></text></svg>
             <b>6</b>
           </div>
         </div>
+
+        <aside class="hero__right">
+          <dl class="stats" data-stats></dl>
+        </aside>
       </div>
       <div class="checker" aria-hidden="true"></div>
     </section>
