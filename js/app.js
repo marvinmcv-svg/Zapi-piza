@@ -124,11 +124,12 @@
     </div>`;
 
   /* ---------- combos + featured ---------- */
-  const comboIcons = ["🌭", "🧀", "🔥", "🎉"];
   $("[data-combos]").innerHTML = Z.combos.map((c, i) => `
     <article class="combo reveal ${c.star ? "combo--star" : ""}" style="transition-delay:${i * 70}ms">
-      ${c.star ? '<span class="combo__flag">Para compartir</span>' : c.hot ? '<span class="combo__flag">Favorito</span>' : ""}
-      <div class="combo__icon" aria-hidden="true">${comboIcons[i] || "🍕"}</div>
+      <div class="combo__media">
+        <img src="${c.img}" alt="${esc(c.name)}: ${esc(c.note)}" loading="lazy" width="720" height="540" />
+        ${c.star ? '<span class="combo__flag">Para compartir</span>' : c.hot ? '<span class="combo__flag">Favorito</span>' : ""}
+      </div>
       <h3>${esc(c.name)}</h3>
       <p>${esc(c.note)}</p>
       <div class="combo__foot">

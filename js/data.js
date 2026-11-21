@@ -113,10 +113,15 @@
 
     // "¡6 años se celebran con MUCHO más sabor!" (Df0PAsYFHL9)
     combos: [
-      { id: "combo-chori", name: "Combo Chori", price: 56, note: "Pizza + soda" },
-      { id: "combo-cheese", name: "Combo Cheese", price: 66, note: "Pizza + soda" },
-      { id: "combo-peppe", name: "Combo Zuper Peppe", price: 76, note: "Pizza + soda", hot: true },
-      { id: "combo-aniv", name: "Combo Aniversario", price: 96, note: "2 pizzas + soda", star: true },
+      // Contents and photos from the post's carousel slides.
+      { id: "combo-chori", name: "Combo Chori", price: 56, img: "assets/img/combo-chori.webp",
+        note: "Zapi Familiar Chori + Guaraná 1 litro" },
+      { id: "combo-cheese", name: "Combo Cheese", price: 66, img: "assets/img/combo-cheese.webp",
+        note: "Zapi Familiar Cheeseburger + Coca-Cola 1,5 litros" },
+      { id: "combo-peppe", name: "Combo Zuper Peppe", price: 76, img: "assets/img/combo-peppe.webp", hot: true,
+        note: "Zapi Familiar Zuper Peppe + Coca-Cola 2 litros" },
+      { id: "combo-aniv", name: "Combo Aniversario", price: 96, img: "assets/img/combo-aniv.webp", star: true,
+        note: "Zapi Familiar Carne Cebolla + Zapi Familiar Americana + Pepsi 2,5 litros" },
     ],
 
     // Yapa del mes: Jamón y Pimentón familiar at Bs 46 (regular Bs 58), all of November.
