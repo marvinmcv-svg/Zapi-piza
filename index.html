@@ -38,9 +38,9 @@
         <span>Zapi&nbsp;Piza</span>
       </a>
       <nav class="nav__links" aria-label="Principal">
-        <a href="#promos">Promos</a>
         <a href="#menu">Menú</a>
-        <a href="#reels">Reels</a>
+        <a href="#promos">Promos</a>
+        <a href="#pedir">Pedir</a>
         <a href="#sucursales">Sucursales</a>
         <a href="#historia">Historia</a>
       </nav>
@@ -68,7 +68,7 @@
           </h1>
           <p class="hero__lede reveal">Pero con una buena pizza todo se soluciona. Seis años, nueve sucursales y un solo objetivo: darte <em>ese gustito</em> que te merecés.</p>
           <div class="hero__ctas reveal">
-            <a href="#menu" class="btn btn--mustard btn--lg">Pedir ahora <span aria-hidden="true">→</span></a>
+            <a href="#pedir" class="btn btn--mustard btn--lg">Pedir ahora <span aria-hidden="true">→</span></a>
             <a href="#sucursales" class="btn btn--ghost btn--lg">Encontrá tu Zapi</a>
           </div>
           <dl class="stats reveal" data-stats></dl>
@@ -127,13 +127,33 @@
       </div>
     </section>
 
-    <!-- ============ MENU / COMBOS ============ -->
-    <section class="section section--wine" id="menu">
+    <!-- ============ CARTA (full menu) ============ -->
+    <section class="section section--cream carta" id="menu">
+      <div class="wrap">
+        <header class="sechead sechead--row">
+          <div>
+            <p class="eyebrow eyebrow--red reveal">Nuestra carta</p>
+            <h2 class="display reveal">El <span class="hl">menú</span></h2>
+            <p class="sechead__sub reveal">Todas llevan salsa de tomate de la casa y queso muzzarella. Tocá <b>+</b> para sumar al pedido.</p>
+          </div>
+          <div class="carta__sizes reveal" aria-hidden="true">
+            <div><b>35</b><span>cm<br/>Familiar</span></div>
+            <div><b>20</b><span>cm<br/>Jr.</span></div>
+          </div>
+        </header>
+        <div class="tabs reveal" role="tablist" aria-label="Categorías del menú" data-tabs></div>
+        <div class="carta__list" data-carta role="tabpanel"></div>
+        <div class="addons reveal" data-addons></div>
+      </div>
+    </section>
+
+    <!-- ============ COMBOS + FEATURED ============ -->
+    <section class="section section--wine" id="combos">
       <div class="wrap">
         <header class="sechead sechead--light">
           <p class="eyebrow eyebrow--mustard reveal">6 años se celebran con más sabor</p>
           <h2 class="display reveal">Combos <span class="hl hl--mustard">Zapi + Soda</span></h2>
-          <p class="sechead__sub reveal">Elegí tu combo, armá tu pedido y te lo mandamos listo por WhatsApp.</p>
+          <p class="sechead__sub reveal">Combos de aniversario con soda incluida. Válidos durante noviembre.</p>
         </header>
         <div class="combos" data-combos></div>
 
@@ -159,6 +179,129 @@
       <div class="reels" data-reels tabindex="0" aria-label="Reels de Instagram"></div>
     </section>
 
+    <!-- ============ WHATSAPP FUNNEL ============ -->
+    <section class="funnel" id="pedir">
+      <div class="wrap funnel__grid">
+        <div class="funnel__main">
+          <header class="sechead sechead--light">
+            <p class="eyebrow eyebrow--mustard reveal">Pedí en 4 pasos</p>
+            <h2 class="display reveal">Tu Zapi, <span class="hl hl--mustard">directo a WhatsApp</span></h2>
+          </header>
+          <ol class="steps" data-steps>
+            <li data-step-tab="1"><span>01 · Qué buscás</span></li>
+            <li data-step-tab="2"><span>02 · Detalles</span></li>
+            <li data-step-tab="3"><span>03 · Tus datos</span></li>
+            <li data-step-tab="4"><span>04 · Enviar</span></li>
+          </ol>
+          <form class="fstep-wrap" data-funnel novalidate>
+            <!-- STEP 1 -->
+            <fieldset class="fstep" data-step="1">
+              <legend class="sr">¿Qué buscás?</legend>
+              <div class="choices">
+                <label class="choice"><input type="radio" name="intent" value="delivery" /><i>01</i><b>Pedido a domicilio</b><span>Elegí tus Zapis y te la llevamos a casa.</span></label>
+                <label class="choice"><input type="radio" name="intent" value="pickup" /><i>02</i><b>Recojo en sucursal</b><span>Pedí antes y pasá a recogerla calentita.</span></label>
+                <label class="choice"><input type="radio" name="intent" value="event" /><i>03</i><b>Mesa o evento</b><span>Cumpleaños, empresa o familia: te armamos la cantidad.</span></label>
+                <label class="choice"><input type="radio" name="intent" value="question" /><i>04</i><b>Tengo una consulta</b><span>Promos, sucursales, horarios o lo que necesités.</span></label>
+              </div>
+            </fieldset>
+
+            <!-- STEP 2 -->
+            <fieldset class="fstep" data-step="2" hidden>
+              <legend class="sr">Detalles</legend>
+              <div data-detail="order">
+                <div class="fcart" data-fcart></div>
+                <p class="fhint">Sumá pizzas desde acá o desde <a href="#menu">el menú</a>.</p>
+                <div class="tabs tabs--dark" data-ftabs></div>
+                <div class="fpicker" data-fpicker></div>
+              </div>
+              <div data-detail="event" hidden>
+                <div class="fgrid">
+                  <label>Fecha<input type="date" name="date" /></label>
+                  <label>Hora<input type="time" name="time" step="900" /></label>
+                  <label>Personas<input type="number" name="people" min="1" max="200" inputmode="numeric" placeholder="Ej: 12" /></label>
+                </div>
+                <p class="flabel">Ocasión</p>
+                <div class="chips" data-chipgroup="occasion">
+                  <button type="button" class="chip" data-chip="Cumpleaños">🎂 Cumpleaños</button>
+                  <button type="button" class="chip" data-chip="Empresa">💼 Empresa</button>
+                  <button type="button" class="chip" data-chip="Familia">👨‍👩‍👧 Familia</button>
+                  <button type="button" class="chip" data-chip="Amigos">🍕 Amigos</button>
+                </div>
+                <label>Contanos más<textarea name="eventNote" rows="3" placeholder="Qué pizzas te gustarían, si es en el local o para llevar…"></textarea></label>
+              </div>
+              <div data-detail="question" hidden>
+                <p class="flabel">Tema</p>
+                <div class="chips" data-chipgroup="topic">
+                  <button type="button" class="chip" data-chip="Promos">Promos</button>
+                  <button type="button" class="chip" data-chip="Sucursales y horarios">Sucursales y horarios</button>
+                  <button type="button" class="chip" data-chip="Delivery">Delivery</button>
+                  <button type="button" class="chip" data-chip="Otro">Otro</button>
+                </div>
+                <label>Tu consulta<textarea name="question" rows="4" placeholder="Escribí tu consulta…"></textarea></label>
+                <button type="button" class="linkbtn" data-zapia-open>¿Querés respuesta al toque? Preguntale a Zap-IA ✨</button>
+              </div>
+            </fieldset>
+
+            <!-- STEP 3 -->
+            <fieldset class="fstep" data-step="3" hidden>
+              <legend class="sr">Tus datos</legend>
+              <div class="fgrid fgrid--2">
+                <label>Nombre<input name="name" autocomplete="name" placeholder="¿Cómo te llamás?" /></label>
+                <label>Sucursal<select name="branch" data-branch-select></select></label>
+              </div>
+              <div data-only="delivery">
+                <label>Dirección<input name="address" autocomplete="street-address" placeholder="Calle, número, barrio" /></label>
+                <label>Referencia<input name="reference" placeholder="Casa con portón rojo, frente a la plaza…" /></label>
+              </div>
+              <div data-only="delivery pickup">
+                <p class="flabel">¿Para cuándo?</p>
+                <div class="chips" data-chipgroup="when">
+                  <button type="button" class="chip is-on" data-chip="Lo antes posible">⚡ Lo antes posible</button>
+                  <button type="button" class="chip" data-chip="Programar">🕒 Programar hora</button>
+                </div>
+                <label data-when-time hidden>Hora<input type="time" name="whenTime" step="900" /></label>
+              </div>
+              <label>Nota (opcional)<textarea name="note" rows="2" placeholder="Sin cebolla, cortada en 12, extra servilletas…"></textarea></label>
+            </fieldset>
+
+            <!-- STEP 4 -->
+            <fieldset class="fstep" data-step="4" hidden>
+              <legend class="sr">Enviar</legend>
+              <div class="fsummary" data-summary></div>
+              <p class="fhint">Se abrirá WhatsApp con tu mensaje listo. Solo tocá enviar y Zapi te confirma por ahí.</p>
+            </fieldset>
+
+            <div class="fnav">
+              <button type="button" class="btn btn--ghost" data-prev>← Atrás</button>
+              <span class="fnav__msg" data-fmsg role="status" aria-live="polite"></span>
+              <button type="button" class="btn btn--mustard btn--lg" data-next>Siguiente →</button>
+              <button type="button" class="btn btn--whatsapp btn--lg" data-send hidden>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Z"/></svg>
+                Enviar por WhatsApp
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <aside class="phone reveal" aria-label="Vista previa del mensaje">
+          <div class="phone__body">
+            <div class="phone__notch"></div>
+            <div class="phone__head">
+              <span class="phone__back">‹</span>
+              <img src="assets/img/logo.png" alt="" width="38" height="38" />
+              <div><b>Zapi Piza</b><small>en línea</small></div>
+            </div>
+            <div class="phone__chat" data-phone-chat>
+              <span class="phone__day">Hoy</span>
+              <div class="bubble bubble--in">¡Hola! 🍕 Somos Zapi. Contanos qué se te antoja y te respondemos al toque ❤️<time data-phone-time></time></div>
+              <div class="bubble bubble--out" data-phone-out>¡Hola Zapi! 👋<time data-phone-time></time></div>
+            </div>
+            <div class="phone__input"><span>Mensaje</span><i>➤</i></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
     <!-- ============ BRANCHES ============ -->
     <section class="section section--cream" id="sucursales">
       <div class="wrap">
@@ -175,7 +318,7 @@
             <strong>¿Preferís delivery?</strong>
             <p>Pedí por WhatsApp o encontranos en Yango. Si tu pedido por Yango tarda más de 30 minutos, tu próximo pedido puede venir con una Zapi Personal.</p>
           </div>
-          <button class="btn btn--red" data-cart-open>Armar mi pedido</button>
+          <a class="btn btn--red" href="#pedir">Armar mi pedido</a>
         </div>
       </div>
     </section>
@@ -278,37 +421,38 @@
           <p>Todavía no agregaste nada.<br/>¡No te quedés con las ganas!</p>
           <a href="#menu" class="btn btn--red" data-cart-close>Ver combos</a>
         </div>
-        <form class="checkout" data-checkout>
-          <label>Nombre
-            <input name="name" autocomplete="name" required placeholder="¿Cómo te llamás?" />
-          </label>
-          <label>Modalidad
-            <select name="mode">
-              <option value="Recojo en sucursal">Recojo en sucursal</option>
-              <option value="Delivery">Delivery</option>
-              <option value="Consumo en el local">Consumo en el local</option>
-            </select>
-          </label>
-          <label>Sucursal
-            <select name="branch" data-branch-select></select>
-          </label>
-          <label data-address-field hidden>Dirección
-            <input name="address" autocomplete="street-address" placeholder="Calle, barrio, referencia" />
-          </label>
-          <label>Nota
-            <textarea name="note" rows="2" placeholder="Sin cebolla, extra queso…"></textarea>
-          </label>
-        </form>
       </div>
       <footer class="drawer__foot">
         <div class="drawer__total"><span>Total</span><strong data-cart-total>Bs 0</strong></div>
-        <button class="btn btn--whatsapp btn--lg btn--block" data-checkout-submit disabled>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.3Z"/></svg>
-          Enviar pedido por WhatsApp
-        </button>
+        <button class="btn btn--mustard btn--lg btn--block" data-goto-funnel disabled>Continuar pedido →</button>
       </footer>
     </aside>
   </div>
+
+  <!-- ============ ZAP-IA ============ -->
+  <button class="zbtn" data-zapia-open aria-label="Abrir Zap-IA, asistente virtual">
+    <img src="assets/img/logo.png" alt="" width="40" height="40" />
+    <span><b>Zap-IA</b><small>¿Te ayudo?</small></span>
+  </button>
+  <section class="zapia" data-zapia aria-hidden="true" role="dialog" aria-modal="false" aria-labelledby="zapia-title">
+    <header class="zapia__head">
+      <img src="assets/img/logo.png" alt="" width="40" height="40" />
+      <div><h3 id="zapia-title">Zap-IA</h3><small><i></i> Recepcionista virtual de Zapi</small></div>
+      <button class="iconbtn iconbtn--dark" data-zapia-close aria-label="Cerrar">✕</button>
+    </header>
+    <div class="zapia__log" data-zlog aria-live="polite"></div>
+    <div class="zapia__chips" data-zchips>
+      <button type="button">¿Qué sucursales están abiertas?</button>
+      <button type="button">¿Cuál es la promo de hoy?</button>
+      <button type="button">¿Qué lleva la Doriloco?</button>
+      <button type="button">Opciones sin carne</button>
+    </div>
+    <form class="zapia__form" data-zform>
+      <input name="q" autocomplete="off" maxlength="600" placeholder="Preguntá sobre menú, precios, sucursales…" aria-label="Tu pregunta" />
+      <button class="zapia__send" aria-label="Enviar">➤</button>
+    </form>
+    <p class="zapia__legal">Zap-IA es una IA y puede equivocarse. Confirmá tu pedido por WhatsApp.</p>
+  </section>
 
   <div class="toast" data-toast role="status" aria-live="polite"></div>
 

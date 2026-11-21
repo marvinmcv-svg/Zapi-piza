@@ -1,0 +1,12 @@
+{
+  "name": "zapi-piza",
+  "private": true,
+  "description": "Zapi Piza website + Zap-IA receptionist (Vercel)",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.12.0",
+    "openai": "^7.62.0"
+  }
+}

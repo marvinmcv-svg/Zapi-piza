@@ -4,12 +4,14 @@ The marketing and ordering site for **Zapi Piza** (Santa Cruz de la Sierra, Boli
 All content and media come from the brand's Instagram, [@zapi.piza](https://www.instagram.com/zapi.piza/). Nothing was AI-generated.
 
 ## Stack
-A static site with no build step: semantic HTML, modern CSS and vanilla JS. It deploys as-is to Vercel, Netlify, GitHub Pages or any CDN.
+A static site (semantic HTML, modern CSS, vanilla JS, no build step) plus one Vercel serverless function for **Zap-IA**.
 
 ```
 index.html        page structure + SEO (Open Graph, schema.org Restaurant)
 css/styles.css    design system (brand tokens at the top)
-js/data.js        ← all content: promos, combos, branches, reels, feed
+js/data.js        ← all content: full menu, promos, combos, branches (shared by site + Zap-IA)
+api/zapia.js      Zap-IA endpoint (streams replies; NVIDIA NIM or Claude)
+api/_prompt.js    builds Zap-IA's knowledge from js/data.js + live time/open branches
 js/app.js         rendering, cart, WhatsApp checkout, live open/closed status
 assets/img        Instagram posts (webp, 900px)
 assets/video      Instagram reels (540p H.264, muted, faststart) + webp posters
@@ -23,13 +25,35 @@ assets/video      Instagram reels (540p H.264, muted, faststart) + webp posters
 - **Reels carousel**: videos play only while on screen and load lazily.
 - Responsive and accessible: skip link, focus styles, `prefers-reduced-motion`, and Esc closes the cart.
 
+## Zap-IA (AI receptionist)
+Floating chat button on every page. It answers questions about the menu, prices, promos, branches and opening hours, using only `js/data.js`. It never invents prices or phone numbers, and it sends customers to the WhatsApp funnel to order.
+
+Set these in Vercel → Project → Settings → Environment Variables (never in the code):
+| Variable | Purpose |
+|---|---|
+| `NVIDIA_API_KEY` | NVIDIA NIM key (current provider) |
+| `ZAPIA_NVIDIA_MODEL` | optional, default `nvidia/nemotron-3-ultra-550b-a55b` |
+| `ZAPIA_THINKING` | optional, `true` enables reasoning mode (slower) |
+| `ANTHROPIC_API_KEY` | optional alternative provider (Claude); used if no NVIDIA key |
+
+Without a key, the chat shows a friendly "coming soon" message and points to the menu and the WhatsApp funnel.
+
+## WhatsApp funnel ("Pedí en 4 pasos")
+1. What do you need: delivery, pick-up, table/event booking, or a question.
+2. Details: pizza picker and cart / date, guests and occasion / question topic.
+3. Customer details: name, branch, address and reference, when.
+4. Review and send.
+
+A live WhatsApp phone mockup previews the exact message as it is filled in.
+
 ## ⚠️ Configure before launch
 `js/data.js` → `config.whatsapp`: the **orders** WhatsApp number isn't published on Instagram, so it is empty for now.
 While it's empty, checkout opens WhatsApp's share sheet with the order pre-filled.
 
 ## Run locally
 ```bash
-python3 -m http.server 8080
+npm install
+npx vercel dev
 ```
 
 ## Updating content
