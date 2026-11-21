@@ -67,21 +67,34 @@ const SYNONYMS = {
 const STOP = new Set(["la", "el", "los", "las", "de", "del", "con", "y", "una", "un", "pizza", "pizzas", "zapi", "quiero", "tienen", "hay", "algo", "the", "a", "with", "and", "any", "have", "you", "do"]);
 function searchText(it) { return norm(`${it.name} ${it.desc || ""} ${it.cat || ""} ${it.kind} ${it.size || ""} ${it.veg ? "veg" : ""} ${it.id}`); }
 
+// Whole-word (prefix) match, so "ham" doesn't hit "champiñón" but "champinon" still hits "champinones".
+const hasWord = (text, t) => new RegExp(`(^| )${t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).test(text);
+
+const KIND_RANK = { pizza: 0, promo: 1, combo: 2, drink: 3, borde: 4, extra: 5, salsa: 6 };
+const rank = (it) => KIND_RANK[it.kind] ?? 9;
+
 function searchMenu(query) {
-  const q = norm(query);
-  const raw = q.split(" ").filter((w) => w && !STOP.has(w));
+  let q = norm(query);
   const terms = new Set();
-  // two-word synonyms first ("sin carne")
-  Object.keys(SYNONYMS).filter((k) => k.includes(" ") && q.includes(k)).forEach((k) => SYNONYMS[k].forEach((t) => terms.add(t)));
-  raw.forEach((w) => { terms.add(w); (SYNONYMS[w] || []).forEach((t) => terms.add(t)); });
+  // two-word synonyms first ("sin carne"); their words are consumed so "carne" doesn't also match meat
+  Object.keys(SYNONYMS).filter((k) => k.includes(" ") && q.includes(k)).forEach((k) => {
+    SYNONYMS[k].forEach((t) => terms.add(t));
+    q = q.replace(k, " ");
+  });
+  // "sin X" = without X: drop X instead of searching for it
+  q = q.replace(/\bsin [a-z]+/g, " ").replace(/\s+/g, " ").trim();
+  const raw = q.split(" ").filter((w) => w && !STOP.has(w));
+  // a word with a synonym is replaced by it (so English "ham" searches "jamon", not "ham")
+  raw.forEach((w) => { (SYNONYMS[w] || [w]).forEach((t) => terms.add(t)); });
   if (!terms.size) return [];
+  const whole = norm(query);
   const scored = Object.values(CATALOG).map((it) => {
     const text = searchText(it), name = norm(it.name);
     let score = 0;
-    terms.forEach((t) => { if (name.includes(t)) score += 3; else if (text.includes(t)) score += 1; });
-    if (name === q || it.id === q) score += 10;
+    terms.forEach((t) => { if (hasWord(name, t)) score += 3; else if (hasWord(text, t)) score += 1; });
+    if (name === whole || it.id === whole) score += 10;
     return { it, score };
-  }).filter((x) => x.score > 0).sort((a, b) => b.score - a.score || a.it.price - b.it.price);
+  }).filter((x) => x.score > 0).sort((a, b) => b.score - a.score || rank(a.it) - rank(b.it) || a.it.price - b.it.price);
   return scored.slice(0, 12).map(({ it }) => itemCard(it));
 }
 const itemCard = (it) => ({ id: it.id, name: it.name, price: it.price, ...(it.desc ? { desc: it.desc } : {}), ...(it.veg ? { sin_carne: true } : {}), ...(it.hot ? { nueva: true } : {}) });
@@ -89,18 +102,25 @@ const itemCard = (it) => ({ id: it.id, name: it.name, price: it.price, ...(it.de
 // Resolve a model/customer reference ("chori", "Chori Jr.", "jr-chori", "coca 2 litros") to one catalog id.
 function resolveItem(ref, size) {
   if (!ref) return { error: "Falta el producto." };
-  if (CATALOG[ref]) return { id: ref };
   const q = norm(ref);
-  const byId = Object.keys(CATALOG).find((id) => norm(id) === q);
-  if (byId) return { id: byId };
+  const s = norm(size) || (/\b(jr|junior|chica|pequena|personal)\b/.test(q) ? "jr" : /\b(familiar|grande)\b/.test(q) ? "familiar" : "");
+  const want = s === "jr" ? "jr" : s ? "familiar" : "";
+  // an exact id wins, but a requested size switches to the same pizza in that size ("chori" + jr → "jr-chori")
+  const direct = CATALOG[ref] ? ref : Object.keys(CATALOG).find((id) => norm(id) === q);
+  if (direct) {
+    const it = CATALOG[direct];
+    if (!want || !it.size || it.size === want) return { id: direct };
+    const sibling = want === "jr" ? `jr-${direct}` : direct.replace(/^jr-/, "");
+    if (CATALOG[sibling]) return { id: sibling };
+    return { error: `${it.name.replace(/\s*\(familiar\)/i, "")} no viene en tamaño ${want === "jr" ? "Jr" : "Familiar"}.` };
+  }
   let hits = Object.values(CATALOG).filter((it) => {
     const n = norm(it.name), base = norm(it.name.replace(/\s*\((familiar|jr\.)\)/i, "").replace(/ jr\.?$/i, ""));
     return n === q || base === q || base === q.replace(/\b(jr|junior|familiar|grande|chica)\b/g, "").trim();
   });
   if (!hits.length) hits = searchMenu(ref).slice(0, 6).map((c) => CATALOG[c.id]);
-  const s = norm(size) || (/\b(jr|junior|chica|pequena|personal)\b/.test(q) ? "jr" : /\b(familiar|grande)\b/.test(q) ? "familiar" : "");
-  if (s && hits.length > 1) {
-    const sized = hits.filter((h) => h.size === (s === "jr" ? "jr" : "familiar"));
+  if (want && hits.length > 1) {
+    const sized = hits.filter((h) => h.size === want);
     if (sized.length) hits = sized;
   }
   if (hits.length > 1) { // "coca 2 litros", "soda 500": prefer names containing the number + unit

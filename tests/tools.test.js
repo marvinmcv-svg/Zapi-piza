@@ -29,7 +29,7 @@ test("search: 'algo vegetariano' returns meat-free pizzas first", () => {
   r.slice(0, 3).forEach((x) => assert.equal(x.sin_carne, true, x.id));
 });
 
-test("search: 'sin carne' returns meat-free items first", { todo: "BUG: 'carne' is also searched as a plain word, so meat items (extra:Carne, carne-cebolla) outrank veg ones" }, () => {
+test("search: 'sin carne' returns meat-free items first", () => {
   const r = T.searchMenu("sin carne");
   r.slice(0, 3).forEach((x) => assert.equal(x.sin_carne, true, x.id));
 });
@@ -40,7 +40,7 @@ test("search: English synonyms (bacon → tocino)", () => {
   r.slice(0, 3).forEach((x) => assert.match(`${x.name} ${x.desc || ""}`.toLowerCase(), /tocino|panceti/));
 });
 
-test("search: 'ham' only matches jamón items", { todo: "BUG: 'ham' substring-matches 'cHAMpi'/'Champiñones' (extra:Champiñones ranks in the top 3)" }, () => {
+test("search: 'ham' only matches jamón items", () => {
   const r = T.searchMenu("something with ham");
   r.slice(0, 3).forEach((x) => assert.match(`${x.name} ${x.desc || ""}`.toLowerCase(), /jam[oó]n/, x.id));
 });
@@ -113,7 +113,7 @@ test("cart: size 'jr' picks the Jr. pizza when the name is explicit", () => {
   assert.deepEqual(T.resolveItem("Pepperoni Jr."), { id: "jr-pepperoni" });
 });
 
-test("cart: size argument 'jr' is honoured for a bare name", { todo: "BUG: resolveItem('chori', 'jr') returns the Familiar id 'chori' because the id shortcut runs before the size filter" }, () => {
+test("cart: size argument 'jr' is honoured for a bare name", () => {
   assert.deepEqual(T.resolveItem("chori", "jr"), { id: "jr-chori" });
 });
 
