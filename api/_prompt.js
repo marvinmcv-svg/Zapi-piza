@@ -83,9 +83,10 @@ function liveContext(state, channel, now = new Date()) {
     `Promo del día: ${promo ? `${promo.name} ${promo.title}: ${promo.desc} a ${promo.from ? "desde " : ""}${bs(promo.price)}` : "no hay promo diaria hoy"}.`,
     `Carrito: ${cart.items ? `${cart.lines.map((l) => `${l.qty} × ${l.name} [${l.id}]`).join(", ")} · total ${cart.total_text}` : "vacío"}.`,
     `Datos del pedido: ${details.length ? details.join(", ") : "ninguno todavía"}. Etapa: ${state.stage}${state.token ? ` (token ${state.token})` : ""}.`,
+    state.stage === "placed" && state.history[0] ? `PEDIDO YA CONFIRMADO en este turno o antes: ${state.history[0].id} para ${state.history[0].branch}. No vuelvas a llamar prepare_order ni place_order: decile en una frase que toque "Enviar pedido por WhatsApp" (el botón ya está en pantalla) y que la sucursal confirma por ahí.` : "",
     `Mi Pedido (pedidos anteriores en este dispositivo): ${state.history.length ? `${state.history.length}; el último: ${cartSummary(state.history[0].cart).lines.map((l) => `${l.qty} × ${l.name}`).join(", ")}` : "ninguno"}.`,
     `Ya se mencionaron novedades: ${state.newsShown ? "sí" : "no"}. Ya se sugirió un extra: ${state.upsold ? "sí" : "no"}.`,
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 }
 
 module.exports = { SYSTEM_PROMPT, liveContext, CATALOG };

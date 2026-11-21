@@ -54,6 +54,13 @@ function pickProvider() {
   return null;
 }
 
+// "Sí", "sí, confirmo", "dale", "de una", "ok", "yes"… but not "sí, pero cambiá…" or "no".
+function isYes(text) {
+  const t = String(text).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  if (/\b(no|pero|cambi\w*|quit\w*|agreg\w*|espera|mejor)\b/.test(t)) return false;
+  return /^(si+|sip|claro|dale|de una|confirm\w*|ok(ay)?|listo|yes|yep|perfecto|correcto|esta bien|va|vamos)\b/.test(t) && t.length <= 60;
+}
+
 const toolResult = (r) => JSON.stringify(r).slice(0, 6000);
 function parseArgs(s) { try { return s ? JSON.parse(s) : {}; } catch { return {}; } }
 
@@ -168,6 +175,11 @@ module.exports = async function handler(req, res) {
     events.filter((e) => e.type !== "state").forEach(send);
     return result;
   };
+
+  // A clear "yes" to the read-back places the order deterministically (the model only acknowledges it).
+  if (state.stage === "awaiting_confirmation" && state.token && isYes(messages[messages.length - 1].content)) {
+    exec("place_order", { token: state.token });
+  }
 
   try {
     if (provider === "nvidia") await loopNvidia({ messages, state, channel, emit, exec });
