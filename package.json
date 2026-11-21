@@ -2,6 +2,9 @@
   "name": "zapi-piza",
   "private": true,
   "description": "Zapi Piza website + Zap-IA receptionist (Vercel)",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
   "engines": {
     "node": ">=20"
   },
