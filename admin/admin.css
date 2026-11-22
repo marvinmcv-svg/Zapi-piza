@@ -156,7 +156,9 @@ textarea { resize: vertical; }
 .seg--occ, .seg--none { background: #ece6e6; color: #5b4b4c; }
 
 /* ---------- KPIs ---------- */
-.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpis--8 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 700px) { .kpis--8 { grid-template-columns: 1fr 1fr; } }
 .kpi { background: var(--white); border-radius: var(--r); padding: 14px 16px; box-shadow: var(--shadow), 0 0 0 1px rgba(36,17,18,.05); display: grid; gap: 2px; align-content: start; border-top: 4px solid transparent; }
 .kpi span { font-size: .74rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .kpi b { font-family: var(--font-display); font-weight: 400; font-size: 1.7rem; line-height: 1.1; color: var(--wine); }
@@ -284,8 +286,8 @@ textarea { resize: vertical; }
 .modal__foot { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 18px 18px; }
 .modal__err { color: var(--red-deep); font-weight: 700; font-size: .88rem; }
 .creds { background: var(--wine); color: var(--mustard); padding: 12px 14px; border-radius: 12px; white-space: pre-wrap; user-select: all; font-size: .9rem; }
-.toast { position: fixed; left: 50%; bottom: 22px; z-index: 90; transform: translate(-50%, 140%); background: var(--wine); color: var(--cream); padding: 12px 18px; border-radius: 14px; font-weight: 700; font-size: .92rem; box-shadow: 0 16px 34px -12px rgba(0,0,0,.6); transition: transform .3s var(--ease); max-width: calc(100vw - 32px); }
-.toast.is-on { transform: translate(-50%, 0); }
+.toast { position: fixed; left: 50%; bottom: 22px; z-index: 90; transform: translate(-50%, 140%); visibility: hidden; opacity: 0; background: var(--wine); color: var(--cream); padding: 12px 18px; border-radius: 14px; font-weight: 700; font-size: .92rem; box-shadow: 0 16px 34px -12px rgba(0,0,0,.6); transition: transform .3s var(--ease); max-width: calc(100vw - 32px); }
+.toast.is-on { transform: translate(-50%, 0); visibility: visible; opacity: 1; }
 .toast--err { background: var(--red-deep); }
 .toast--warn { background: #8a5a00; }
 

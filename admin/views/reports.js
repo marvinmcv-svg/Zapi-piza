@@ -7,7 +7,7 @@ const TARGET = { prep: 15, otd: 20, delivery: 40, cancel: 3, late: 20 };
 export function kpiTiles(r) {
   const flag = (v, t, lowerIsBetter = true) => (v == null ? "" : (lowerIsBetter ? v <= t : v >= t) ? "kpi--good" : "kpi--bad");
   const mins = (v) => (v == null ? "—" : `${num(v, 1)} min`);
-  return `<div class="kpis">
+  return `<div class="kpis kpis--8">
     <div class="kpi kpi--hero"><span>Ventas</span><b>${esc(money(r.revenue))}</b></div>
     <div class="kpi"><span>Pedidos</span><b>${num(r.orders)}</b></div>
     <div class="kpi"><span>Ticket promedio</span><b>${esc(money(r.aov))}</b></div>
@@ -21,11 +21,11 @@ export function kpiTiles(r) {
 
 function bars(rows, { label, value, fmt = (v) => num(v), max, color = "var(--red)", h = 180 }) {
   if (!rows.length) return `<p class="muted">Sin datos en el período.</p>`;
-  const W = 640, pad = 28, bw = (W - pad) / rows.length, top = max || Math.max(...rows.map(value), 1);
-  return `<svg class="chart" viewBox="0 0 ${W} ${h + 34}" role="img" aria-label="Gráfico">
+  const W = 640, pad = 28, T = 18, bw = (W - pad) / rows.length, top = max || Math.max(...rows.map(value), 1);
+  return `<svg class="chart" viewBox="0 -${T} ${W} ${h + 34 + T}" role="img" aria-label="Gráfico">
     ${[0.25, 0.5, 0.75, 1].map((f) => `<line x1="${pad}" x2="${W}" y1="${h - h * f + 8}" y2="${h - h * f + 8}" class="chart__grid"/>`).join("")}
     ${rows.map((r, i) => {
-      const v = value(r), bh = Math.max(2, (v / top) * h), x = pad + i * bw + bw * 0.14, w = bw * 0.72;
+      const v = value(r), bh = Math.max(2, (v / top) * h), w = Math.min(bw * 0.72, 56), x = pad + i * bw + (bw - w) / 2;
       return `<g><rect x="${x}" y="${h - bh + 8}" width="${w}" height="${bh}" rx="4" fill="${color}"><title>${esc(label(r))}: ${esc(fmt(v))}</title></rect>
         ${rows.length <= 16 ? `<text x="${x + w / 2}" y="${h - bh + 2}" class="chart__val">${esc(fmt(v))}</text>` : ""}
         <text x="${x + w / 2}" y="${h + 26}" class="chart__lbl">${esc(label(r))}</text></g>`;
