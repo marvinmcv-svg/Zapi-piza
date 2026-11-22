@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es-BO">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Zapi Backoffice</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#1d0a0c" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32.png" />
+  <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/admin/admin.css" />
+</head>
+<body>
+  <!-- login -->
+  <main class="login" id="login" hidden>
+    <form class="login__card" id="login-form" autocomplete="on">
+      <img src="/assets/img/logo.png" alt="Zapi Piza" width="72" height="72" />
+      <h1>Zapi <span>Backoffice</span></h1>
+      <p class="login__sub">Pedidos, clientes y sucursales en un solo lugar.</p>
+      <label>Email<input type="email" name="email" autocomplete="username" required /></label>
+      <label>Contraseña<input type="password" name="password" autocomplete="current-password" required /></label>
+      <p class="login__err" id="login-err" role="alert"></p>
+      <button class="btn btn--primary btn--lg btn--block" type="submit">Ingresar</button>
+      <a class="login__back" href="/">← Volver al sitio</a>
+    </form>
+  </main>
+
+  <!-- app -->
+  <div class="app" id="app" hidden>
+    <aside class="side">
+      <a class="side__brand" href="#/"><img src="/assets/img/logo.png" alt="" width="40" height="40" /><span>Zapi<small>Backoffice</small></span></a>
+      <nav class="side__nav" id="nav" aria-label="Secciones"></nav>
+      <div class="side__me" id="me"></div>
+    </aside>
+    <main class="main" id="view" tabindex="-1"></main>
+  </div>
+
+  <div class="drawer" id="drawer" hidden>
+    <div class="drawer__scrim" data-close-drawer></div>
+    <aside class="drawer__panel" role="dialog" aria-modal="true"><div class="drawer__body"></div></aside>
+  </div>
+  <div class="modal" id="modal" hidden></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div id="print-area" aria-hidden="true"></div>
+
+  <script src="/js/config.js"></script>
+  <script type="module" src="/admin/app.js"></script>
+</body>
+</html>
