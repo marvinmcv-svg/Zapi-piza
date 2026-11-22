@@ -66,13 +66,27 @@ Without a key, the chat shows a friendly "coming soon" message and points to the
 
 **Teaching it new words:** when a search finds nothing (or the model can't resolve something), the function logs a line like `{"evt":"zapia_miss","kind":"search_empty","text":"..."}`. In Vercel → Project → Logs, search for `zapia_miss`. Then add the customers' words to `SYNONYMS` in `api/_tools.js` (for example `"salame": ["pepperoni"]`), add a test in `tests/tools.test.js`, and deploy.
 
-**Not built yet (needs a backend, POS or payments):** live order tracking and GPS, payments in chat, rewards, a WhatsApp Business bot, a phone voice agent. See the roadmap in `MASTERPROMPT.md`.
+**Not built yet:** payments in chat, GPS rider tracking, rewards, a WhatsApp Business bot, a phone voice agent. See the roadmap in `MASTERPROMPT.md`.
+
+## Backend (orders, CRM, stores, staff) — Supabase
+Project **zapi-piza** (`ovjokicahfkqtlyeezhx`, São Paulo). Schema and logic live in `supabase/migrations/` (001 schema, 002 security + ops, 003 server functions); `supabase/seed.sql` is generated from `js/data.js` (`node scripts/seed-sql.js > supabase/seed.sql`).
+
+- **Every order is recorded**: the website funnel and Zap-IA call `place_order` (publishable key, `js/config.js`), which re-prices from `menu_items`, checks the branch (paused, delivery/pickup on/off) and per-store sold-out items, upserts the customer by phone (+591), numbers the order per store per day, flags possible duplicates, and is idempotent per cart. The WhatsApp message carries the code and a tracking link.
+- **Sigue tu Pizza** (`/seguimiento/?t=<token>`): public status timeline via `track_order` (unguessable token, first name only, no address/phone).
+- **Backoffice** (`/admin`): live orders board per store, manual orders (phone, walk-in, WhatsApp, Yango), CRM with segments, branches (hours, pause, delivery/pickup, sold-out "86"), menu, reports, team, audit log.
+- **Security**: row-level security on every table; staff only see their own store (owner/admin see all); order status changes only through `set_order_status` (enforced flow, kitchen/rider limits, cancel reasons, manager for cancelling after the kitchen starts); trigger-based audit log of price, status, payment, pause, sold-out and role changes.
+- **Roles**: owner, admin (all stores) · manager, cashier, kitchen, rider (one store). Create staff in `/admin` → Equipo.
+- **Checks**: `node tests/backend.e2e.js <ownerPw> <managerPw> <kitchenPw>` runs 32 live API checks (creates test orders).
+
+**Keep prices in sync:** the website shows prices from `js/data.js`; the database charges `menu_items`. After changing a price, update both (edit in `/admin` → Menú and in `data.js`, or regenerate and run `supabase/seed.sql`).
+
+**Recommended Supabase settings (dashboard):** Authentication → turn off "Allow new users to sign up" (staff are created from `/admin`) and turn on leaked-password protection.
 
 ## WhatsApp funnel ("Pedí en 4 pasos")
 1. What do you need: delivery, pick-up, table/event booking, or a question.
 2. Details: pizza picker and cart / date, guests and occasion / question topic.
-3. Customer details: name, branch, address and reference, when.
-4. Review and send.
+3. Customer details: name, WhatsApp number, branch, address and reference, when.
+4. Review and send: the order is recorded (code + tracking link), then WhatsApp opens with the message.
 
 A live WhatsApp phone mockup previews the exact message as it is filled in.
 
