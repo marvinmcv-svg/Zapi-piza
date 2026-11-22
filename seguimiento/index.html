@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es-BO">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Sigue tu Pizza · Zapi Piza</title>
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#DF2F38" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --red: #df2f38; --red-deep: #a10715; --wine: #1d0a0c; --cream: #fef6d7; --cream-2: #f3e7bf; --mustard: #f7c344; --ink: #241112; --wa: #25d366;
+      --display: "Bagel Fat One", system-ui, sans-serif; --body: "DM Sans", system-ui, sans-serif; --ease: cubic-bezier(.2,.8,.2,1); }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--body); color: var(--ink); background: var(--cream); min-height: 100svh; }
+    .top { background: var(--red); color: var(--cream); padding: 18px 20px 70px; text-align: center; position: relative; }
+    .top a { color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; font-family: var(--display); font-size: 1.4rem; }
+    .top img { border-radius: 10px; box-shadow: 0 0 0 2px rgba(254,246,215,.6); }
+    .top h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2.2rem, 8vw, 3.4rem); line-height: .95; margin: 22px 0 6px; }
+    .top h1 span { color: var(--mustard); }
+    .top p { margin: 0; opacity: .85; }
+    .checker { height: 26px; background: conic-gradient(var(--cream) 25%, transparent 0 50%, var(--cream) 0 75%, transparent 0) 0 0 / 26px 26px, var(--red); }
+    main { width: min(560px, 100% - 32px); margin: -40px auto 40px; position: relative; display: grid; gap: 14px; }
+    .card { background: #fffaf0; border-radius: 22px; padding: 22px; box-shadow: 0 24px 50px -28px rgba(29,10,12,.45), 0 0 0 1px rgba(29,10,12,.05); }
+    .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .code { font-family: var(--display); font-size: 1.6rem; line-height: 1; }
+    .code small { display: block; font-family: var(--body); font-size: .78rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--red); margin-bottom: 6px; }
+    .pill { font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 7px 11px; border-radius: 999px; background: var(--mustard); color: var(--wine); white-space: nowrap; }
+    .pill--ok { background: #dff5e3; color: #137a2c; } .pill--x { background: #f6dedd; color: var(--red-deep); }
+    .now { font-family: var(--display); font-size: clamp(1.7rem, 6vw, 2.2rem); line-height: 1.05; margin: 16px 0 4px; color: var(--red); }
+    .now-sub { margin: 0; opacity: .7; }
+    ol.steps { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 0; }
+    ol.steps li { position: relative; display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; padding: 10px 0; }
+    ol.steps li::before { content: ""; position: absolute; left: 16px; top: -10px; height: 20px; width: 2px; background: var(--cream-2); }
+    ol.steps li:first-child::before { display: none; }
+    ol.steps i { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-style: normal; background: var(--cream-2); color: rgba(36,17,18,.4); font-size: 1rem; z-index: 1; }
+    ol.steps b { font-weight: 700; color: rgba(36,17,18,.45); }
+    ol.steps time { font-size: .82rem; opacity: .6; }
+    ol.steps li.done i { background: var(--red); color: var(--cream); }
+    ol.steps li.done b { color: var(--ink); }
+    ol.steps li.done::before { background: var(--red); }
+    ol.steps li.cur i { background: var(--mustard); color: var(--wine); box-shadow: 0 0 0 6px rgba(247,195,68,.3); animation: pulse 1.6s infinite; }
+    ol.steps li.cur b { color: var(--ink); }
+    @keyframes pulse { 50% { box-shadow: 0 0 0 10px rgba(247,195,68,.12); } }
+    .items { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+    .items li { display: flex; justify-content: space-between; gap: 10px; }
+    .total { display: flex; justify-content: space-between; align-items: baseline; border-top: 2px dotted rgba(161,7,21,.25); margin-top: 12px; padding-top: 12px; }
+    .total strong { font-family: var(--display); font-size: 1.6rem; color: var(--red); font-weight: 400; }
+    h2 { font-family: var(--display); font-weight: 400; font-size: 1.3rem; margin: 0 0 12px; }
+    .btn { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 18px; border-radius: 999px; font-weight: 700; text-decoration: none; }
+    .btn--wa { background: var(--wa); color: #062b12; }
+    .btn--ghost { box-shadow: inset 0 0 0 2px var(--cream-2); color: var(--ink); margin-top: 10px; }
+    .fine { text-align: center; font-size: .8rem; opacity: .55; margin: 6px 0 0; }
+    .state { text-align: center; padding: 40px 22px; }
+    .state b { font-family: var(--display); font-size: 1.6rem; font-weight: 400; display: block; margin-bottom: 8px; }
+    .sk { height: 18px; border-radius: 8px; background: linear-gradient(90deg, var(--cream-2), #fff6de, var(--cream-2)); background-size: 200% 100%; animation: sk 1.2s infinite; margin: 10px 0; }
+    @keyframes sk { to { background-position: -200% 0; } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <a href="/"><img src="/assets/img/logo.png" alt="" width="36" height="36" /> Zapi Piza</a>
+    <h1>Sigue tu <span>Pizza</span></h1>
+    <p data-hello>Tu pedido, en vivo.</p>
+  </header>
+  <div class="checker" aria-hidden="true"></div>
+  <main data-main aria-live="polite">
+    <section class="card"><div class="sk"></div><div class="sk" style="width:60%"></div><div class="sk" style="width:80%"></div></section>
+  </main>
+
+  <script src="/js/config.js"></script>
+  <script>
+  (() => {
+    "use strict";
+    const C = window.ZAPI_CONFIG;
+    const $ = (s) => document.querySelector(s);
+    const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const token = new URLSearchParams(location.search).get("t") || "";
+    const main = $("[data-main]");
+    const fmtTime = (iso) => new Date(iso).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "America/La_Paz" });
+    const STEPS = {
+      delivery: [["nuevo", "Recibido", "🧾"], ["confirmado", "Confirmado por la sucursal", "✅"], ["en_preparacion", "Preparando tu pizza", "👩‍🍳"],
+                 ["en_horno", "En el horno", "🔥"], ["listo", "Lista", "🍕"], ["en_camino", "En camino", "🛵"], ["entregado", "Entregado", "🎉"]],
+      pickup:   [["nuevo", "Recibido", "🧾"], ["confirmado", "Confirmado por la sucursal", "✅"], ["en_preparacion", "Preparando tu pizza", "👩‍🍳"],
+                 ["en_horno", "En el horno", "🔥"], ["listo", "Lista para recoger", "🏪"], ["entregado", "Retirado", "🎉"]],
+    };
+    STEPS.local = STEPS.pickup;
+    const HEAD = { nuevo: "¡Recibimos tu pedido!", confirmado: "La sucursal confirmó tu pedido", en_preparacion: "Estamos preparando tu pizza",
+      en_horno: "Tu pizza está en el horno 🔥", listo: "¡Tu pizza está lista!", en_camino: "Tu pizza va en camino 🛵", entregado: "¡Que la disfrutes! 🍕", cancelado: "Pedido cancelado" };
+    const SUB = { nuevo: "En un momento la sucursal lo confirma por WhatsApp.", confirmado: "Ya entra a la cocina.", en_preparacion: "Masa, salsa y mucho queso.",
+      en_horno: "Falta poquito.", listo: "", en_camino: "El repartidor ya salió.", entregado: "Gracias por elegir Zapi.", cancelado: "" };
+    let timer = 0;
+
+    function render(o) {
+      const steps = STEPS[o.service] || STEPS.pickup;
+      const at = {}; (o.events || []).forEach((e) => (at[e.status] = e.at));
+      const idx = steps.findIndex(([s]) => s === o.status);
+      const cancelled = o.status === "cancelado";
+      document.title = `${HEAD[o.status] || "Tu pedido"} · ${o.code}`;
+      $("[data-hello]").textContent = o.name ? `¡Hola, ${o.name}!` : "Tu pedido, en vivo.";
+      const wa = `https://wa.me/${o.store.whatsapp}?text=${encodeURIComponent(`¡Hola Zapi ${o.store.name}! Consulta por mi pedido ${o.code} 🍕`)}`;
+      const sub = o.status === "listo" ? (o.service === "delivery" ? "Sale en un ratito con el repartidor." : `Pasá a buscarla por ${o.store.name}.`) : SUB[o.status];
+      main.innerHTML = `
+        <section class="card">
+          <div class="head">
+            <div class="code"><small>Pedido${o.order_no ? ` N° ${esc(o.order_no)}` : ""}</small>${esc(o.code)}</div>
+            <span class="pill ${cancelled ? "pill--x" : o.status === "entregado" ? "pill--ok" : ""}">${o.service === "delivery" ? "A domicilio" : "Para recoger"}</span>
+          </div>
+          <p class="now">${esc(HEAD[o.status] || o.status)}</p>
+          <p class="now-sub">${cancelled ? `Motivo: ${esc(o.cancel_reason || "—")}. Escribinos si tenés dudas.` : esc(sub)}${o.scheduled_for && !cancelled ? ` Programado para las ${esc(fmtTime(o.scheduled_for))}.` : ""}</p>
+          ${cancelled ? "" : `<ol class="steps">${steps.map(([s, label, icon], i) => {
+            const cls = i < idx || (i === idx && s === "entregado") ? "done" : i === idx ? "cur" : "";
+            return `<li class="${cls}"><i aria-hidden="true">${i <= idx ? icon : "·"}</i><b>${esc(label)}</b><time>${at[s] ? esc(fmtTime(at[s])) : ""}</time></li>`;
+          }).join("")}</ol>`}
+        </section>
+        <section class="card">
+          <h2>Tu pedido · ${esc(o.store.name)}</h2>
+          <ul class="items">${(o.items || []).map((i) => `<li><span>${esc(i.qty)} × ${esc(i.name)}</span></li>`).join("")}</ul>
+          <div class="total"><span>Total${+o.delivery_fee ? ` (incluye envío Bs ${esc(o.delivery_fee)})` : ""}</span><strong>Bs ${esc(+o.total)}</strong></div>
+          <p class="fine">El precio final con promos del día lo confirma la sucursal.</p>
+        </section>
+        <section class="card">
+          <a class="btn btn--wa" href="${esc(wa)}" target="_blank" rel="noopener">💬 Escribir a Zapi ${esc(o.store.name)}</a>
+          <a class="btn btn--ghost" href="/#menu">🍕 Pedir otra vez</a>
+          <p class="fine">Esta página se actualiza sola.</p>
+        </section>`;
+      clearTimeout(timer);
+      if (!["entregado", "cancelado"].includes(o.status)) timer = setTimeout(load, 15000);
+    }
+
+    function state(title, text) {
+      main.innerHTML = `<section class="card state"><b>${esc(title)}</b><p>${esc(text)}</p><a class="btn btn--ghost" href="/">Volver a Zapi</a></section>`;
+    }
+
+    async function load() {
+      if (!/^[0-9a-f-]{36}$/i.test(token)) return state("No encontramos ese pedido", "Revisá el link que te llegó por WhatsApp.");
+      try {
+        const res = await fetch(`${C.supabaseUrl}/rest/v1/rpc/track_order`, {
+          method: "POST", headers: { apikey: C.supabaseKey, "content-type": "application/json" }, body: JSON.stringify({ p_token: token }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data) return state("No encontramos ese pedido", "Revisá el link que te llegó por WhatsApp.");
+        render(data);
+      } catch {
+        state("Sin conexión", "Reintentamos en unos segundos…");
+        clearTimeout(timer); timer = setTimeout(load, 8000);
+      }
+    }
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+    load();
+  })();
+  </script>
+</body>
+</html>

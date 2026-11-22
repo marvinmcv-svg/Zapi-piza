@@ -17,7 +17,21 @@
 //   ANTHROPIC_API_KEY  → Claude: ZAPIA_MODEL (text, default claude-sonnet-5-5), ZAPIA_VOICE_MODEL (voice, default claude-haiku-5-5)
 // ZAPIA_PROVIDER=nvidia|anthropic forces one when both keys exist.
 const { SYSTEM_PROMPT, liveContext } = require("./_prompt.js");
-const { openaiTools, anthropicTools, runTool, sanitizeState } = require("./_tools.js");
+const { openaiTools, anthropicTools, runTool, sanitizeState, buildWhatsApp } = require("./_tools.js");
+const backend = require("./_backend.js");
+const Z = require("../js/data.js");
+
+const BACKEND_ERRORS = {
+  sold_out: "Ese producto está agotado en esa sucursal hoy.",
+  store_paused: "Esa sucursal pausó los pedidos por un momento.",
+  delivery_unavailable: "Esa sucursal no está tomando pedidos a domicilio ahora.",
+  pickup_unavailable: "Esa sucursal no está tomando pedidos para recoger ahora.",
+  invalid_phone: "El número de WhatsApp no es válido.",
+  customer_blocked: "No se pudo tomar el pedido; que el cliente escriba a la sucursal.",
+  rate_limited: "Hay demasiados pedidos seguidos con ese número; esperá unos minutos.",
+};
+const STATUS_LABEL = { nuevo: "Recibido, esperando confirmación de la sucursal", confirmado: "Confirmado por la sucursal", en_preparacion: "En preparación",
+  en_horno: "En el horno", listo: "Listo", en_camino: "En camino", entregado: "Entregado", cancelado: "Cancelado" };
 
 const MAX_TURNS = 16;   // conversation messages kept per request
 const MAX_CHARS = 1200; // per message
@@ -100,7 +114,9 @@ async function loopNvidia({ messages, state, channel, emit, exec }) {
     if (!real.length) return;
     convo.push({ role: "assistant", content: text || null,
       tool_calls: real.map((c, i) => ({ id: c.id || `call_${round}_${i}`, type: "function", function: { name: c.name, arguments: c.args || "{}" } })) });
-    real.forEach((c, i) => convo.push({ role: "tool", tool_call_id: c.id || `call_${round}_${i}`, content: toolResult(exec(c.name, parseArgs(c.args))) }));
+    for (const [i, c] of real.entries()) {
+      convo.push({ role: "tool", tool_call_id: c.id || `call_${round}_${i}`, content: toolResult(await exec(c.name, parseArgs(c.args))) });
+    }
     emit.round();
   }
 }
@@ -130,7 +146,9 @@ async function loopAnthropic({ messages, state, channel, emit, exec }) {
     const uses = final.content.filter((b) => b.type === "tool_use");
     if (final.stop_reason !== "tool_use" || !uses.length) return;
     convo.push({ role: "assistant", content: final.content });
-    convo.push({ role: "user", content: uses.map((u) => ({ type: "tool_result", tool_use_id: u.id, content: toolResult(exec(u.name, u.input)) })) });
+    const results = [];
+    for (const u of uses) results.push({ type: "tool_result", tool_use_id: u.id, content: toolResult(await exec(u.name, u.input)) });
+    convo.push({ role: "user", content: results });
     emit.round();
   }
 }
@@ -170,7 +188,7 @@ module.exports = async function handler(req, res) {
   // place_order is only valid for a read-back shown in an EARLIER turn, answered with a yes in THIS turn.
   const tokenAtStart = state.stage === "awaiting_confirmation" ? state.token : null;
   const saidYes = isYes(messages[messages.length - 1].content);
-  const exec = (name, args) => {
+  const exec = async (name, args) => {
     const events = [];
     let result;
     if (name === "place_order" && !(tokenAtStart && saidYes && state.token === tokenAtStart)) {
@@ -178,12 +196,50 @@ module.exports = async function handler(req, res) {
     }
     try { result = runTool(name, args, state, events); }
     catch (err) { console.error("zapia_tool_error", name, err && err.message); result = { error: "La herramienta falló." }; }
-    events.filter((e) => e.type !== "state").forEach(send);
+    for (const e of events) {
+      if (e.type === "order" && e.backend) result = await recordOrder(e, result);
+    }
+    if (name === "get_order_status" && result && result.track_token) {
+      events.push({ type: "track", url: backend.trackingUrl(result.track_token), code: result.pedido });
+      result = await liveStatus(result);
+    }
+    events.filter((e) => e.type !== "state" && !e.dropped).forEach((e) => { delete e.backend; send(e); });
     return result;
   };
 
+  // Record a confirmed order in the backend (orders board, CRM, tracking). The database re-prices it.
+  // Business errors (sold out, branch paused…) undo the placement so the model can tell the customer;
+  // if the backend is unreachable, the WhatsApp order still goes out with the local code.
+  async function recordOrder(ev, result) {
+    const r = await backend.placeOrder(ev.backend);
+    if (r.data && r.data.code) {
+      const code = r.data.code, track = backend.trackingUrl(r.data.tracking_token);
+      const b = Z.branches.find((x) => x.name === ev.branch);
+      ev.id = code; ev.track = track;
+      ev.url = `https://wa.me/${b.whatsapp}?text=${encodeURIComponent(buildWhatsApp(state, code, track))}`;
+      ev.entry.id = code; ev.entry.track = r.data.tracking_token; ev.total = `Bs ${r.data.total}`;
+      state.history[0] = ev.entry;
+      return { ...result, pedido: code, total_confirmado: `Bs ${r.data.total}`, seguimiento: "El cliente puede seguir su pedido con el botón en pantalla." };
+    }
+    if (r.network) { console.error("zapia_backend_unreachable", r.error); return result; }
+    console.log(JSON.stringify({ evt: "zapia_backend_rejected", error: r.error }));
+    ev.dropped = true;
+    state.history = state.history.filter((h) => h !== ev.entry);
+    state.stage = "awaiting_confirmation";
+    const msg = BACKEND_ERRORS[(r.error || "").split(":")[0]] || "La sucursal no pudo recibir el pedido.";
+    return { error: `${msg}${r.error && r.error.includes(":") ? ` (${r.error.split(":").slice(1).join(":")})` : ""}`, siguiente: "Explicale al cliente y ofrecé una alternativa (otra sucursal, quitar el producto o programar)." };
+  }
+  async function liveStatus(result) {
+    const r = await backend.trackOrder(result.track_token);
+    const { track_token, ...rest } = result;
+    if (!r.data) return rest;
+    const ev = r.data.events || [];
+    return { ...rest, estado_en_vivo: STATUS_LABEL[r.data.status] || r.data.status, desde: ev.length ? ev[ev.length - 1].at : null,
+      seguimiento: "Hay un link de seguimiento en vivo en el botón.", estado: undefined };
+  }
+
   // A clear "yes" to the read-back places the order deterministically (the model only acknowledges it).
-  if (tokenAtStart && saidYes) exec("place_order", { token: tokenAtStart });
+  if (tokenAtStart && saidYes) await exec("place_order", { token: tokenAtStart });
 
   try {
     if (provider === "nvidia") await loopNvidia({ messages, state, channel, emit, exec });

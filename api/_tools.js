@@ -36,6 +36,13 @@ function branchStatus(b, minutes) {
   if (minutes < o) return { open: false, text: `cerrada, abre hoy a las ${b.open}` };
   return { open: false, text: `cerrada, abre mañana a las ${b.open}` };
 }
+// Bolivian mobile → "7xxxxxxx" (8 digits) or "" ; same rule as the database's normalize_phone()
+function normPhone(p) {
+  let d = String(p || "").replace(/\D/g, "");
+  if (d.startsWith("591") && d.length === 11) d = d.slice(3);
+  if (d.length === 9 && d.startsWith("0")) d = d.slice(1);
+  return /^[67]\d{7}$/.test(d) ? d : "";
+}
 const fmtPhone = (n) => n.replace(/^591/, "").replace(/(\d{4})(\d{4})/, "$1 $2");
 function findBranch(name) {
   const q = norm(name);
@@ -194,17 +201,31 @@ function missingDetails(st) {
   if (!o.branch) miss.push("branch (sucursal)");
   if (o.service === "delivery" && !o.address && !o.location) miss.push("address o ubicación (pin)");
   if (!o.name) miss.push("name (nombre)");
+  if (!o.phone) miss.push("phone (su WhatsApp, 8 dígitos: para el seguimiento del pedido)");
   return miss;
+}
+// What the database's place_order() expects. Prices are recomputed there from menu_items.
+function backendPayload(st, b) {
+  const o = st.order;
+  return {
+    client_ref: `zapia-${st.token}-${o.phone}`, channel: "zapia", store: b.name, service: o.service,
+    customer_name: o.name, customer_phone: o.phone, address: o.address || (o.location ? "Ubicación compartida (pin)" : ""),
+    reference: o.reference, lat: o.location ? o.location.lat : null, lng: o.location ? o.location.lng : null,
+    notes: [o.notes, o.payment && `Pago: ${o.payment}`].filter(Boolean).join(" · "), scheduled_for: o.when !== "asap" ? o.when : "",
+    items: Object.entries(st.cart).map(([id, qty]) => ({ id, qty })),
+  };
 }
 function hash(str) { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(36); }
 const orderToken = (st) => hash(JSON.stringify([Object.entries(st.cart).sort(), st.order]));
 function whenText(o) { return o.when && o.when !== "asap" ? `Para las ${o.when}` : "Lo antes posible"; }
-function buildWhatsApp(st, id) {
+function buildWhatsApp(st, id, trackUrl) {
   const o = st.order, L = [];
   L.push(`¡Hola Zapi! 🍕 Quiero hacer un pedido ${o.service === "delivery" ? "*a domicilio*" : "*para recoger*"}:`, "");
   for (const [itemId, q] of Object.entries(st.cart)) L.push(`• ${q} × ${CATALOG[itemId].name}: ${bs(CATALOG[itemId].price * q)}`);
   L.push("", `*Total productos: ${bs(cartTotal(st.cart))}*`, "");
-  L.push(`👤 ${o.name}`, `📍 Sucursal: ${o.branch}`);
+  L.push(`👤 ${o.name}`);
+  if (o.phone) L.push(`📱 ${fmtPhone(o.phone)}`);
+  L.push(`📍 Sucursal: ${o.branch}`);
   if (o.service === "delivery") {
     if (o.address) L.push(`🏠 Dirección: ${o.address}`);
     if (o.reference) L.push(`↪ Referencia: ${o.reference}`);
@@ -214,6 +235,7 @@ function buildWhatsApp(st, id) {
   if (o.payment) L.push(`💵 Pago: ${o.payment}`);
   if (o.notes) L.push(`💬 Nota: ${o.notes}`);
   L.push("", `Pedido ${id} · armado con Zap-IA`);
+  if (trackUrl) L.push(`Seguí tu pedido: ${trackUrl}`);
   return L.join("\n");
 }
 
@@ -227,6 +249,7 @@ function sanitizeState(s) {
   const history = Array.isArray(s.history) ? s.history.slice(0, 3).map((h) => ({
     id: clip(h && h.id, 20), at: clip(h && h.at, 40), branch: findBranch(h && h.branch) ? findBranch(h.branch).name : "",
     service: SERVICES[h && h.service] ? h.service : "", cart: sanitizeCart(h && h.cart),
+    track: /^[0-9a-f-]{36}$/i.test(h && h.track) ? h.track : null,
   })).filter((h) => cartCount(h.cart)) : [];
   return {
     cart: sanitizeCart(s.cart),
@@ -236,7 +259,7 @@ function sanitizeState(s) {
       branch: branch ? branch.name : "",
       address: clip(o.address), reference: clip(o.reference), location: loc,
       when: /^([01]\d|2[0-3]):[0-5]\d$/.test(o.when) ? o.when : "asap",
-      payment: clip(o.payment, 80), name: clip(o.name, 60), notes: clip(o.notes),
+      payment: clip(o.payment, 80), name: clip(o.name, 60), notes: clip(o.notes), phone: normPhone(o.phone),
     },
     stage: ["browsing", "awaiting_confirmation", "placed"].includes(s.stage) ? s.stage : "browsing",
     token: clip(s.token, 20) || null,
@@ -273,7 +296,7 @@ const TOOLS = [
   { name: "reorder", description: "Carga en el carrito un pedido anterior (index 0 = el más reciente). Reemplaza el carrito actual.",
     schema: { index: { type: "integer", minimum: 0, maximum: 2 } }, required: ["index"] },
   { name: "set_order_details", description: "Guarda datos del pedido. Solo los campos que el cliente dijo. service: 'delivery' o 'pickup'. when: 'asap' o 'HH:MM' (24 h). Devuelve qué falta.",
-    schema: { service: str("delivery | pickup", { enum: ["delivery", "pickup"] }), branch: str("Nombre de la sucursal"), address: str("Calle, número, barrio o anillo"), reference: str("Referencia (portón rojo, frente a...)"), when: str("'asap' o 'HH:MM'"), name: str("Nombre del cliente"), payment: str("Solo si el cliente lo menciona (ej. 'efectivo, cambio de 100')"), notes: str("Pedido especial: sin cebolla, cortada en 12...") }, required: [] },
+    schema: { service: str("delivery | pickup", { enum: ["delivery", "pickup"] }), branch: str("Nombre de la sucursal"), address: str("Calle, número, barrio o anillo"), reference: str("Referencia (portón rojo, frente a...)"), when: str("'asap' o 'HH:MM'"), name: str("Nombre del cliente"), phone: str("WhatsApp del cliente (8 dígitos), para el seguimiento"), payment: str("Solo si el cliente lo menciona (ej. 'efectivo, cambio de 100')"), notes: str("Pedido especial: sin cebolla, cortada en 12...") }, required: [] },
   { name: "request_location", description: "Muestra el botón para compartir la ubicación exacta (Entrega con Pin). Útil si no sabe la dirección o es un lugar sin número.", schema: {}, required: [] },
   { name: "prepare_order", description: "Arma el resumen final (productos, total, sucursal, entrega, hora) y un token de confirmación. Léelo al cliente y pedí un 'sí' explícito.", schema: {}, required: [] },
   { name: "place_order", description: "Confirma el pedido SOLO después de que el cliente dijo que sí al resumen. Genera el envío por WhatsApp a la sucursal.",
@@ -440,6 +463,7 @@ function runTool(name, args, st, events, now = new Date()) {
       if (args.address) o.address = clip(args.address);
       if (args.reference) o.reference = clip(args.reference);
       if (args.name) o.name = clip(args.name, 60);
+      if (args.phone) { const ph = normPhone(args.phone); if (ph) o.phone = ph; else errors.push("phone debe ser un celular boliviano de 8 dígitos (empieza con 6 o 7)"); }
       if (args.payment) o.payment = clip(args.payment, 80);
       if (args.notes) o.notes = clip(args.notes);
       if (args.when) {
@@ -491,7 +515,7 @@ function runTool(name, args, st, events, now = new Date()) {
       const entry = { id, at: `${t.date} ${t.hhmm}`, branch: b.name, service: st.order.service, cart: { ...st.cart }, total: cartTotal(st.cart) };
       st.history = [entry, ...st.history.filter((h) => h.id !== id)].slice(0, 3);
       st.stage = "placed";
-      events.push({ type: "order", id, url, branch: b.name, total: bs(entry.total), entry });
+      events.push({ type: "order", id, url, branch: b.name, total: bs(entry.total), entry, backend: backendPayload(st, b) });
       return { ok: true, pedido: id, siguiente: `Decile que toque "Enviar por WhatsApp" para mandarlo a ${b.name}; la sucursal confirma por ahí.` };
     }
     case "get_order_status": {
@@ -499,7 +523,7 @@ function runTool(name, args, st, events, now = new Date()) {
       if (!h) return { pedido: null, nota: "No hay pedidos de este dispositivo. Si pidió por otro medio, que consulte a su sucursal." };
       const b = findBranch(h.branch);
       if (b) events.push({ type: "handoff", url: `https://wa.me/${b.whatsapp}?text=${encodeURIComponent(`¡Hola! Quería saber el estado de mi pedido ${h.id} 🍕`)}`, to: `Zapi ${b.name}` });
-      return { pedido: h.id, enviado: h.at, sucursal: h.branch, total: bs(cartTotal(h.cart)),
+      return { pedido: h.id, enviado: h.at, sucursal: h.branch, total: bs(cartTotal(h.cart)), track_token: h.track || null,
         estado: "El seguimiento (preparación y envío) lo confirma la sucursal por WhatsApp.", whatsapp_sucursal: b ? fmtPhone(b.whatsapp) : null,
         link: b ? `https://wa.me/${b.whatsapp}?text=${encodeURIComponent(`¡Hola! Quería saber el estado de mi pedido ${h.id} 🍕`)}` : null };
     }
@@ -525,4 +549,4 @@ function runTool(name, args, st, events, now = new Date()) {
   }
 }
 
-module.exports = { TOOLS, openaiTools, anthropicTools, runTool, sanitizeState, cartSummary, nowLocal, branchStatus, searchMenu, resolveItem, CATALOG };
+module.exports = { buildWhatsApp, normPhone, TOOLS, openaiTools, anthropicTools, runTool, sanitizeState, cartSummary, nowLocal, branchStatus, searchMenu, resolveItem, CATALOG };

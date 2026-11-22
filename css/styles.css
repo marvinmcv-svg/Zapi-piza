@@ -1254,3 +1254,10 @@ section[id] { scroll-margin-top: 84px; }
 @media (max-width: 560px) {
   body.zapia-open .toast { bottom: calc(176px + env(safe-area-inset-bottom)); }
 }
+
+/* funnel: order registered (backend) */
+.fdone { display: grid; gap: 6px; justify-items: start; margin-bottom: 18px; padding: 18px 20px; border-radius: 18px;
+  background: rgba(37, 211, 102, .12); box-shadow: inset 0 0 0 2px rgba(37, 211, 102, .45); color: var(--cream); }
+.fdone b { font-family: var(--font-display); font-weight: 400; font-size: 1.35rem; }
+.fdone span { opacity: .85; font-size: .95rem; }
+.fdone .btn { margin-top: 6px; }

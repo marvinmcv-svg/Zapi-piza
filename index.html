@@ -393,6 +393,7 @@
               <legend class="sr">Tus datos</legend>
               <div class="fgrid fgrid--2">
                 <label>Nombre<input name="name" autocomplete="name" placeholder="¿Cómo te llamás?" /></label>
+                <label>Tu WhatsApp<input name="phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="7xx xxxxx" maxlength="16" /></label>
                 <label>Sucursal<select name="branch" data-branch-select></select></label>
               </div>
               <div data-only="delivery">
@@ -407,7 +408,7 @@
                 </div>
                 <label data-when-time hidden>Hora<input type="time" name="whenTime" step="900" /></label>
               </div>
-              <p class="fhint">📲 Tu mensaje va directo al WhatsApp de la sucursal que elijas.</p>
+              <p class="fhint">📲 Tu mensaje va directo al WhatsApp de la sucursal que elijas, con un link para <b>seguir tu pedido</b> en vivo.</p>
               <label>Nota (opcional)<textarea name="note" rows="2" placeholder="Sin cebolla, cortada en 12, extra servilletas…"></textarea></label>
             </fieldset>
 
@@ -657,6 +658,7 @@
 
   <div class="toast" data-toast role="status" aria-live="polite"></div>
 
+  <script src="js/config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
 </body>

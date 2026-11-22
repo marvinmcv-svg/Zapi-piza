@@ -198,6 +198,12 @@
   const branchSel = $("[data-branch-select]");
   const obForm = $("[data-orderbox]"), obBranch = $("[data-ob-branch]");
   const CALL_CENTER = "Call Center";
+  const normPhone = (p) => {
+    let d = String(p || "").replace(/\D/g, "");
+    if (d.startsWith("591") && d.length === 11) d = d.slice(3);
+    if (d.length === 9 && d.startsWith("0")) d = d.slice(1);
+    return /^[67]\d{7}$/.test(d) ? d : "";
+  };
   const fmtPhone = (n) => n.replace(/^591/, "").replace(/(\d{4})(\d{4})/, "$1 $2");
   const branchByName = (name) => Z.branches.find((b) => b.name === name);
   function renderBranches() {
@@ -375,6 +381,7 @@
     if (bump) { c.classList.remove("bump"); void c.offsetWidth; c.classList.add("bump"); }
     renderFunnelCart();
     updatePreview();
+    if (bump) sendRef = null; // a changed cart is a different order
   }
 
   let lastFocus = null;
@@ -443,6 +450,7 @@
       } else L.push("(elegí tus pizzas)");
       L.push("");
       if (name) L.push(`👤 ${name}`);
+      if (normPhone(val("phone"))) L.push(`📱 ${fmtPhone(normPhone(val("phone")))}`);
       if (branch) L.push(`📍 Sucursal: ${branch}`);
       if (F.intent === "delivery") {
         if (val("address")) L.push(`🏠 Dirección: ${val("address")}`);
@@ -492,6 +500,8 @@
     }
     if (step === 3) {
       if (!val("name")) return "¿Cómo te llamás?";
+      if (isOrder() && !normPhone(val("phone"))) return "Dejanos tu WhatsApp (8 dígitos) para seguir tu pedido 📱";
+      if (val("phone") && !normPhone(val("phone"))) return "Revisá tu WhatsApp: 8 dígitos, empieza con 6 o 7";
       if (!val("branch")) return "Elegí una sucursal";
       if (val("branch") === CALL_CENTER && F.intent !== "question") return "Elegí la sucursal que va a preparar tu pedido";
       if (F.intent === "delivery" && !val("address")) return "Necesitamos tu dirección 📍";
@@ -534,13 +544,14 @@
   }
 
   form.addEventListener("change", (e) => {
+    sendRef = null;
     if (e.target.name === "intent") {
       F.intent = e.target.value;
       setTimeout(() => go(2), 180);
     }
     updatePreview();
   });
-  form.addEventListener("input", updatePreview);
+  form.addEventListener("input", () => { sendRef = null; updatePreview(); });
   form.addEventListener("click", (e) => {
     const chip = e.target.closest("[data-chip]");
     if (chip) {
@@ -558,12 +569,75 @@
     go(F.step + 1);
   });
   $("[data-prev]", form).addEventListener("click", () => go(Math.max(1, F.step - 1)));
-  $("[data-send]", form).addEventListener("click", () => {
+  // Orders are recorded in the backend first (orders board, CRM, "Sigue tu Pizza"), then sent by WhatsApp
+  // with the order code and tracking link. If the backend is unreachable, WhatsApp still works.
+  let sendRef = null, sending = false;
+  const RPC_ERRORS = {
+    sold_out: "Uno de tus productos está agotado en esa sucursal hoy. Quitalo o elegí otra sucursal.",
+    store_paused: "Esa sucursal pausó los pedidos por un ratito. Probá con otra sucursal 🙏",
+    delivery_unavailable: "Esa sucursal no está tomando pedidos a domicilio ahora.",
+    pickup_unavailable: "Esa sucursal no está tomando pedidos para recoger ahora.",
+    invalid_phone: "Revisá tu WhatsApp: 8 dígitos, empieza con 6 o 7",
+    rate_limited: "Recibimos varios pedidos seguidos con tu número. Esperá unos minutos 🙏",
+    customer_blocked: "No pudimos tomar tu pedido en línea. Escribinos por WhatsApp a la sucursal.",
+  };
+  async function recordFunnelOrder() {
+    const C = window.ZAPI_CONFIG;
+    if (!C) return { network: true };
+    sendRef = sendRef || `web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const payload = {
+      client_ref: sendRef, channel: "web", store: val("branch"), service: F.intent,
+      customer_name: val("name"), customer_phone: normPhone(val("phone")),
+      address: val("address"), reference: val("reference"), notes: val("note"),
+      scheduled_for: F.when === "Programar" ? val("whenTime") : "",
+      items: Object.entries(cart).map(([id, qty]) => ({ id, qty })),
+    };
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 6000);
+    try {
+      const res = await fetch(`${C.supabaseUrl}/rest/v1/rpc/place_order`, {
+        method: "POST", headers: { apikey: C.supabaseKey, "content-type": "application/json" }, body: JSON.stringify({ payload }), signal: ctl.signal,
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data && data.code) return { data };
+      return { error: (data && data.message) || `http_${res.status}` };
+    } catch { return { network: true }; } finally { clearTimeout(timer); }
+  }
+  $("[data-send]", form).addEventListener("click", async () => {
+    if (sending) return;
     for (const s of [1, 2, 3]) { const err = validate(s); if (err) { go(s); msgEl.textContent = err; return; } }
-    const text = encodeURIComponent(buildMessage());
     const to = recipient();
-    window.open(`https://wa.me/${to.number}?text=${text}`, "_blank", "noopener");
-    toast(`¡Listo! Terminá de enviarlo a ${to.label} en WhatsApp 📲`);
+    let text = buildMessage(), done = null;
+    // open the tab now (inside the click) so popup blockers allow it; we point it at WhatsApp once we have the code
+    const win = window.open("", "_blank");
+    if (isOrder()) {
+      sending = true; msgEl.textContent = "Registrando tu pedido…";
+      const r = await recordFunnelOrder();
+      sending = false; msgEl.textContent = "";
+      if (r.error) {
+        if (win) win.close();
+        msgEl.textContent = RPC_ERRORS[r.error.split(":")[0]] || "No pudimos registrar tu pedido. Probá de nuevo o escribinos por WhatsApp.";
+        return;
+      }
+      if (r.data) {
+        const track = `${window.ZAPI_CONFIG.siteUrl}/seguimiento/?t=${r.data.tracking_token}`;
+        text += `\n\nPedido ${r.data.code}\nSeguí tu pedido: ${track}`;
+        done = { code: r.data.code, track: `/seguimiento/?t=${r.data.tracking_token}`, total: r.data.total };
+        mipedido = [{ id: r.data.code, at: new Date().toLocaleString("es-BO", { timeZone: Z.config.timezone }), branch: val("branch"),
+          service: F.intent, cart: { ...cart }, total: r.data.total, track: r.data.tracking_token }, ...mipedido.filter((h) => h.id !== r.data.code)].slice(0, 3);
+        localStorage.setItem(MKEY, JSON.stringify(mipedido));
+        // keep sendRef: pressing "send" again returns this same order (idempotent) until something changes
+      }
+    }
+    const wa = `https://wa.me/${to.number}?text=${encodeURIComponent(text)}`;
+    if (win) { win.opener = null; win.location.href = wa; } else location.href = wa;
+    if (done) {
+      const prev = $(".fdone");
+      if (prev) prev.parentNode.removeChild(prev);
+      $("[data-summary]").insertAdjacentHTML("afterbegin", `<div class="fdone"><b>¡Pedido ${esc(done.code)} registrado! 🎉</b>
+        <span>Total ${fmt(done.total)} · la sucursal lo confirma por WhatsApp.</span>
+        <a class="btn btn--mustard" href="${esc(done.track)}" target="_blank" rel="noopener">📍 Seguir mi pedido</a></div>`);
+      toast(`¡Pedido ${done.code} registrado! Terminá de enviarlo por WhatsApp 📲`);
+    } else toast(`¡Listo! Terminá de enviarlo a ${to.label} en WhatsApp 📲`);
   });
   obForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -691,11 +765,14 @@
   }
   const WA_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Z"/></svg>';
   const safeUrl = (u) => (/^https:\/\/wa\.me\//.test(String(u || "")) ? String(u) : "");
+  // "Sigue tu Pizza" links: only our own tracking page
+  const trackUrl = (u) => { try { const x = new URL(u, location.href); return x.pathname.replace(/\/+$/, "") === "/seguimiento" && /^[0-9a-f-]{36}$/i.test(x.searchParams.get("t") || "") ? `/seguimiento/?t=${x.searchParams.get("t")}` : ""; } catch { return ""; } };
   function orderHtml(ev) {
     const url = safeUrl(ev.url);
     return `<p class="zcard__title">Pedido ${esc(ev.id || "")} listo 🎉</p>
       <p class="zcard__sub">Para ${esc(ev.branch || "tu sucursal")}${ev.total ? ` · ${esc(ev.total)}` : ""}</p>
       ${url ? `<a class="zwa" href="${esc(url)}" target="_blank" rel="noopener">${WA_ICON} Enviar pedido por WhatsApp</a>` : ""}
+      ${trackUrl(ev.track) ? `<a class="zwa zwa--ghost" href="${esc(trackUrl(ev.track))}" target="_blank" rel="noopener">📍 Seguir mi pedido</a>` : ""}
       <p class="zcard__fine">Tocá enviar en WhatsApp. La sucursal te confirma el pedido y el tiempo de entrega por ahí.</p>`;
   }
   function handoffHtml(ev) {
@@ -809,6 +886,14 @@
           seen.add(`pedido ${ev.id || ""}`.trim());
           toast(`🎉 Pedido ${ev.id || ""} listo: envialo por WhatsApp`);
           break;
+        case "track": {
+          const t = trackUrl(ev.url);
+          if (!t) return;
+          closeBubble();
+          addCard("zcard--handoff", `<a class="zwa zwa--ghost" href="${esc(t)}" target="_blank" rel="noopener">📍 Seguir mi pedido${ev.code ? ` ${esc(ev.code)}` : ""}</a>`);
+          parts.push({ card: true });
+          break;
+        }
         case "handoff": {
           const h = handoffHtml(ev);
           if (!h) return;
