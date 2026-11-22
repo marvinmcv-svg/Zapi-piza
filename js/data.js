@@ -97,12 +97,13 @@
     },
 
     /* ---------------- PROMOS (Instagram, November 2026) ---------------- */
-    // "¡LA SEMANA ZAPI EN TIEMPOS DE ANIVERSARIO SE VE ASÍ!" (DfSZzrUBk9s)
+    // "¡LA SEMANA ZAPI EN TIEMPOS DE ANIVERSARIO SE VE ASÍ!" (DfSZzrUBk9s) + the "Promos Noviembre" carousel
+    // (DfQIkVglFxH): one slide per day with the artwork (img) and the struck-through regular price (was).
     weekly: [
-      { day: 1, name: "Lunes", title: "de Premium", desc: "Tu Zapi Familia Premium", price: "56", save: "Ahorrás Bs 12", cats: ["premium"] },
-      { day: 2, name: "Martes", title: "de Eco", desc: "Tu Zapi Eco Familiar", price: "36", save: "Ahorrás hasta Bs 10", cats: ["eco"] },
-      { day: 3, name: "Miércoles", title: "de Clásicas y Especiales", desc: "Tus favoritas familiares", price: "46", from: true, save: "Ahorrás Bs 8–18", cats: ["clasica", "especial"] },
-      { day: 5, name: "Viernes", title: "de Palé", desc: "Todas las paletas Palé", price: "6", save: "Refrescá tu día", pale: true },
+      { day: 1, name: "Lunes", title: "de Premium", desc: "Todas las Zapi Premium familiares", price: "56", was: "68", save: "Ahorrás Bs 12", cats: ["premium"], img: "assets/img/promo-lunes.webp" },
+      { day: 2, name: "Martes", title: "de Eco", desc: "Todas las Zapi Eco familiares", price: "36", was: "46", save: "Ahorrás hasta Bs 10", cats: ["eco"], img: "assets/img/promo-martes.webp" },
+      { day: 3, name: "Miércoles", title: "de Clásicas y Especiales", desc: "Todas las Clásicas y Especiales familiares", price: "46", was: "64", save: "Ahorrás hasta Bs 18", cats: ["clasica", "especial"], img: "assets/img/promo-miercoles.webp" },
+      { day: 5, name: "Viernes", title: "de Palé", desc: "Todas las paletas Palé", price: "6", save: "Refrescá tu día", pale: true, img: "assets/img/pale.webp" },
     ],
 
     // "¡6 años se celebran con MUCHO más sabor!" (Df0PAsYFHL9)

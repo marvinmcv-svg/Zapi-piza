@@ -65,6 +65,37 @@
   offersEl.addEventListener("scroll", syncOfferArrows, { passive: true });
   addEventListener("resize", syncOfferArrows); syncOfferArrows();
 
+  /* ---------- la semana Zapi: one card per promo day, with its Instagram artwork ---------- */
+  function renderWeek() {
+    const today = nowInBolivia().day;
+    $("[data-week]").innerHTML = Z.weekly.map((w, i) => {
+      const isToday = w.day === today;
+      const cat = (w.cats || [])[0];
+      const link = w.pale ? `<a class="day__go" href="#pale">Ver Palé →</a>`
+        : cat ? `<a class="day__go" href="#menu" data-week-cat="${esc(cat)}">Ver ${esc(w.title.replace(/^de /, "").split(" ")[0])} →</a>` : "";
+      return `<article class="day reveal${isToday ? " is-today" : ""}${w.pale ? " day--pale" : ""}" style="transition-delay:${i * 70}ms">
+        <div class="day__art">
+          ${w.img ? `<img src="${w.img}" alt="${esc(`${w.name} ${w.title}: ${w.desc} a Bs ${w.price}`)}" loading="lazy" width="900" height="1125" />` : ""}
+          ${isToday ? '<span class="day__today">Hoy</span>' : ""}
+        </div>
+        <div class="day__body">
+          <p class="day__name">${esc(w.name)}</p>
+          <h3 class="day__title">${esc(w.title)}</h3>
+          <p class="day__desc">${esc(w.desc)}</p>
+          <div class="day__price"><small>Bs</small>${esc(w.price)}${w.was ? `<s>Bs ${esc(w.was)}</s>` : ""}</div>
+          <div class="day__foot"><span class="day__save">${esc(w.save)}</span>${link}</div>
+        </div>
+      </article>`;
+    }).join("");
+  }
+  renderWeek();
+  $("[data-week]").addEventListener("click", (e) => {
+    const go = e.target.closest("[data-week-cat]");
+    if (!go) return;
+    const tab = $(`[data-cat="${go.dataset.weekCat}"]`);
+    if (tab) tab.click();
+  });
+
   /* ---------- carta ---------- */
   const tabsEl = $("[data-tabs]"), cartaEl = $("[data-carta]");
   tabsEl.innerHTML = Z.menu.map((c, i) =>

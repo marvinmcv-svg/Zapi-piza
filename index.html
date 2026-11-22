@@ -97,7 +97,7 @@
       <h1 class="sr">Zapi Piza: pizzas familiares para compartir en Santa Cruz de la Sierra</h1>
       <div class="hero__slides" data-slides>
 
-        <article class="slide slide--red is-active" data-slide data-tone="dark" aria-roledescription="diapositiva" aria-label="1 de 3: Combo Zuper Peppe">
+        <article class="slide slide--red is-active" data-slide data-tone="dark" aria-roledescription="diapositiva" aria-label="1 de 5: Combo Zuper Peppe">
           <div class="slide__bg" aria-hidden="true"></div>
           <div class="wrap slide__grid">
             <div class="slide__copy">
@@ -119,7 +119,7 @@
           </div>
         </article>
 
-        <article class="slide slide--cream" data-slide data-tone="light" aria-roledescription="diapositiva" aria-label="2 de 3: Yapa del mes" inert>
+        <article class="slide slide--cream" data-slide data-tone="light" aria-roledescription="diapositiva" aria-label="2 de 5: Yapa del mes" inert>
           <div class="slide__bg" aria-hidden="true"></div>
           <div class="wrap slide__grid">
             <div class="slide__copy">
@@ -137,7 +137,7 @@
           </div>
         </article>
 
-        <article class="slide slide--wine" data-slide data-tone="dark" aria-roledescription="diapositiva" aria-label="3 de 3: La Doriloco" inert>
+        <article class="slide slide--wine" data-slide data-tone="dark" aria-roledescription="diapositiva" aria-label="3 de 5: La Doriloco" inert>
           <div class="slide__bg" aria-hidden="true"><img src="assets/hero/doriloco-hd.webp" alt="" loading="lazy" /></div>
           <div class="wrap slide__grid">
             <div class="slide__copy">
@@ -157,6 +157,45 @@
             </figure>
           </div>
         </article>
+
+        <article class="slide slide--red slide--share" data-slide data-tone="dark" aria-roledescription="diapositiva" aria-label="4 de 5: Combo Aniversario" inert>
+          <div class="slide__bg" aria-hidden="true"></div>
+          <div class="wrap slide__grid">
+            <div class="slide__copy">
+              <p class="slide__kicker">Combos aniversario · para compartir</p>
+              <h2 class="slide__title">Combo<br/><span>Aniversario</span></h2>
+              <div class="slide__price"><small>Bs</small><b>96</b><span>2 Zapi Familiares: Carne Cebolla + Americana, con Pepsi 2,5 litros</span></div>
+              <div class="slide__ctas">
+                <button type="button" class="btn btn--mustard btn--lg" data-add="combo-aniv">Agregar al pedido</button>
+                <a class="btn btn--ghost btn--lg" href="#combos">Ver los 4 combos</a>
+              </div>
+            </div>
+            <figure class="slide__media">
+              <img src="assets/hero/slide-aniv.webp" alt="Dos pizzas familiares, Carne Cebolla y Americana, con una Pepsi de 2,5 litros" width="1000" height="655" loading="lazy" />
+            </figure>
+          </div>
+        </article>
+
+        <article class="slide slide--slate" data-slide data-tone="dark" aria-roledescription="diapositiva" aria-label="5 de 5: 4 Quesos" inert>
+          <div class="slide__bg" aria-hidden="true"><img src="assets/hero/slide-4quesos.webp" alt="" loading="lazy" /></div>
+          <div class="wrap slide__grid">
+            <div class="slide__copy">
+              <p class="slide__kicker">Zapi Premium · ¿qué es el amor?</p>
+              <h2 class="slide__title">La<br/><span>4 Quesos</span></h2>
+              <div class="slide__price"><small>Bs</small><b>68</b><span>Muzzarella, cheddar, queso azul y catupiry derritiéndose</span></div>
+              <div class="slide__ctas">
+                <button type="button" class="btn btn--mustard btn--lg" data-add="4-quesos">Agregar al pedido</button>
+                <a class="btn btn--ghost btn--lg" href="#menu">Ver el menú</a>
+              </div>
+            </div>
+            <figure class="slide__media slide__media--photo">
+              <div class="slide__photo">
+                <img src="assets/hero/slide-4quesos.webp" alt="Porción de pizza 4 Quesos levantada con el queso estirándose" width="1000" height="750" loading="lazy" />
+              </div>
+              <div class="slide__blob" aria-hidden="true"><small>Los lunes</small><b>Bs 56</b><small>todas las Premium</small></div>
+            </figure>
+          </div>
+        </article>
       </div>
 
       <div class="wrap hero__foot">
@@ -164,6 +203,8 @@
           <button type="button" role="tab" aria-selected="true" aria-label="Combo Zuper Peppe"></button>
           <button type="button" role="tab" aria-selected="false" aria-label="Yapa del mes"></button>
           <button type="button" role="tab" aria-selected="false" aria-label="La Doriloco"></button>
+          <button type="button" role="tab" aria-selected="false" aria-label="Combo Aniversario"></button>
+          <button type="button" role="tab" aria-selected="false" aria-label="4 Quesos"></button>
         </div>
         <p class="hero__terms">Válido durante noviembre · en el local o por WhatsApp</p>
       </div>
@@ -431,14 +472,31 @@
 
     <!-- ============ PALÉ ============ -->
     <section class="pale" id="pale">
+      <div class="pale__bg" aria-hidden="true"></div>
       <div class="wrap pale__grid">
         <div class="pale__copy">
-          <p class="eyebrow eyebrow--cream reveal">Zapi + Palé = la combinación perfecta</p>
-          <h2 class="display display--xl reveal">Los viernes<br/>se disfrutan<br/>más.</h2>
-          <p class="reveal">Todas las paletas Palé Picoles a <strong>Bs 6</strong>, todos los viernes, en cada sucursal Zapi. Oreo, grosella, gomitas y muchos sabores más para después de tu pizza.</p>
+          <p class="pale__kicker reveal">Zapi + Palé · la combinación perfecta</p>
+          <h2 class="pale__title reveal">Los viernes<br/><span>se disfrutan más.</span></h2>
+          <div class="pale__price reveal"><small>Bs</small><b>6</b><span>cada paleta Palé Picoles,<br/>todos los viernes</span></div>
+          <ul class="pale__flavors reveal" aria-label="Sabores">
+            <li>Oreo</li><li>Grosella</li><li>Gomitas</li><li>¡y muchos sabores más!</li>
+          </ul>
+          <dl class="pale__info reveal">
+            <div><dt>¿Cuándo?</dt><dd>Todos los viernes de noviembre</dd></div>
+            <div><dt>¿Dónde?</dt><dd>En las 9 sucursales Zapi</dd></div>
+          </dl>
+          <div class="pale__ctas reveal">
+            <a class="btn btn--cream btn--lg" href="#sucursales">Ver sucursales</a>
+            <a class="btn btn--ghost btn--lg" href="#pedir">Pedir por WhatsApp</a>
+          </div>
         </div>
         <div class="pale__media reveal">
-          <img src="assets/img/pale.webp" alt="Paletas Palé de varios sabores a Bs 6 los viernes" loading="lazy" width="900" height="1112" />
+          <img class="pale__paletas" src="assets/img/pale-paletas.webp" alt="Cinco paletas Palé: grosella, una verde con gomitas, Oreo, chocolate y naranja" loading="lazy" width="900" height="565" />
+          <div class="pale__tag" aria-hidden="true"><small>Paletas a</small><b>Bs 6</b></div>
+          <a class="pale__reel" href="https://instagram.com/p/DfXzV40pO5u" target="_blank" rel="noopener" aria-label="Ver el reel de Viernes de Palé en Instagram">
+            <video src="assets/video/pale.mp4" poster="assets/video/pale.webp" muted loop playsinline preload="none" data-autoplay aria-hidden="true"></video>
+            <span>Viernes de Palé ▶</span>
+          </a>
         </div>
       </div>
     </section>
